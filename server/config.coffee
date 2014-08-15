@@ -37,7 +37,7 @@ config =
         americano.logger 'short'
     ]
     plugins: [
-        'americano-cozy'
+        'americano-cozy-pouchdb'
     ]
 
 module.exports = config

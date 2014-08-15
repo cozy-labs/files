@@ -27,22 +27,15 @@ module.exports =
 
         # Perform download with the lowel level node js api to avoid too much
         # memory consumption.
-        downloader.download "/data/#{file.id}/binaries/file", (stream) ->
-            if stream.statusCode is 200
-                stream.pipefilter = (source, dest) ->
-                    XSSmimeTypes = ['text/html', 'image/svg+xml']
-                    if source.headers['content-type'] in XSSmimeTypes
-                        dest.setHeader 'content-type', 'text/plain'
-                stream.pipe res
-
-            else if stream.statusCode is 404
-                err = new Error 'An error occured while downloading the file: ' + \
-                                'file not found.'
-                err.status = 404
-                next err
-
-            else
+        stream = file.getBinary 'file', (err, stream) ->
+            if err
+                console.log err
                 next new Error 'An error occured while downloading the file.'
+        stream.pipefilter = (source, dest) ->
+            XSSmimeTypes = ['text/html', 'image/svg+xml']
+            if source.headers['content-type'] in XSSmimeTypes
+                dest.setHeader 'content-type', 'text/plain'
+        stream.pipe res
 
     # Returns a file calss depending of the mime type. It's useful to render icons
     # properly.

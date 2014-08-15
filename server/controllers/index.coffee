@@ -7,15 +7,17 @@ module.exports.main = (req, res, next) ->
     async.parallel [
         (cb) -> CozyInstance.getLocale cb
         (cb) ->
-            dataSystem = new Client "http://localhost:9101/"
-            dataSystem.get 'tags', (err, response, body) ->
-                err = err or body.error
-                cb err, body
+            cb null, []
     ], (err, results) =>
+        console.log 'hourra'
+        console.log err
+        console.log results
 
         if err then next err
         else
             [locale, tags] = results
+            console.log locale
+            console.log tags
             res.render 'index.jade', imports: """
                 window.locale = "#{locale}";
                 window.tags = "#{tags}".split(',');

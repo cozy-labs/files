@@ -1,4 +1,4 @@
-americano = require 'americano-cozy'
+americano = require 'americano-cozy-pouchdb'
 moment = require 'moment'
 CozyInstance = require './cozy_instance'
 

@@ -9,7 +9,7 @@ User = require('../models/user');
 
 helpers = require('../helpers/sharing');
 
-clearance = require('cozy-clearance');
+clearance = require('cozy-pouchdb-clearance');
 
 async = require('async');
 

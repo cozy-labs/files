@@ -1,5 +1,3 @@
-americano = require 'americano-cozy'
-
 module.exports =
     file:
         all: (doc) -> emit doc._id, doc

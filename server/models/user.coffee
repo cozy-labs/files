@@ -1,4 +1,4 @@
-americano = require 'americano-cozy'
+americano = require 'americano-cozy-pouchdb'
 
 module.exports = User = americano.getModel 'User',
     email: String

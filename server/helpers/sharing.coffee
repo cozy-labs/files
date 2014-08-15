@@ -1,13 +1,14 @@
+clearance = require 'cozy-pouchdb-clearance'
+NotificationHelper = require 'cozy-notifications-helper'
+
 File = require '../models/file'
 Folder = require '../models/folder'
 CozyInstance = require '../models/cozy_instance'
 User = require '../models/user'
-clearance = require 'cozy-clearance'
-NotificationHelper = require 'cozy-notifications-helper'
 localization = require '../lib/localization_manager'
 
-try CozyAdapter = require('americano-cozy/node_modules/jugglingdb-cozy-adapter')
-catch e then CozyAdapter = require('jugglingdb-cozy-adapter')
+try CozyAdapter = require('americano-cozy-pouchdb/node_modules/jugglingdb-pouchdb-adapter')
+catch e then CozyAdapter = require('jugglingdb-pouchdb-adapter')
 
 cozydomain = 'http://your.friends.cozy.url/'
 CozyInstance.getURL (err, domain) =>

@@ -16,38 +16,38 @@ pathHelpers = require '../helpers/path'
 
 # Dirty stuff while waiting that combined stream library get fixed and included
 # in every dependencies.
-monkeypatch = (ctx, fn, after) ->
-    old = ctx[fn]
+#monkeypatch = (ctx, fn, after) ->
+    #old = ctx[fn]
 
-    ctx[fn] = ->
-        after.apply @, arguments
+    #ctx[fn] = ->
+        #after.apply @, arguments
 
 
-combinedStreamPath = 'americano-cozy/' + \
-                     'node_modules/jugglingdb-cozy-adapter/' + \
-                     'node_modules/request-json/' + \
-                     'node_modules/request/' + \
-                     'node_modules/form-data/' + \
-                     'node_modules/combined-stream'
+#combinedStreamPath = 'americano-cozy/' + \
+                     #'node_modules/jugglingdb-cozy-adapter/' + \
+                     #'node_modules/request-json/' + \
+                     #'node_modules/request/' + \
+                     #'node_modules/form-data/' + \
+                     #'node_modules/combined-stream'
 
-monkeypatch require(combinedStreamPath).prototype, 'pause', ->
-    if not @pauseStreams
-       return
+#monkeypatch require(combinedStreamPath).prototype, 'pause', ->
+    #if not @pauseStreams
+       #return
 
-    if(@pauseStreams and typeof(@_currentStream.pause) is 'function')
-        @_currentStream.pause()
-    @emit 'pause'
+    #if(@pauseStreams and typeof(@_currentStream.pause) is 'function')
+        #@_currentStream.pause()
+    #@emit 'pause'
 
-monkeypatch require(combinedStreamPath).prototype, 'resume', ->
-    if not @_released
-        @_released = true
-        @writable = true
-        @_getNext()
+#monkeypatch require(combinedStreamPath).prototype, 'resume', ->
+    #if not @_released
+        #@_released = true
+        #@writable = true
+        #@_getNext()
 
-    if @pauseStreams and typeof(@_currentStream.resume) is 'function'
-        @_currentStream.resume()
+    #if @pauseStreams and typeof(@_currentStream.resume) is 'function'
+        #@_currentStream.resume()
 
-    @emit 'resume'
+    #@emit 'resume'
 # End of dirty stuff
 
 
@@ -258,8 +258,8 @@ updateParents = () ->
             errors[folder.name] = err if err?
     folderParent = {}
 
-
 # There is two ways to modify a file:
+
 # * change its tags: simple modification
 # * change its name: it requires to check that no file has the same name, then
 # it requires a new indexation.

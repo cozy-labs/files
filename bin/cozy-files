@@ -1,0 +1,21 @@
+#!/usr/bin/env node
+
+var path = require('path-extra');
+var fs = require('fs');
+
+if(process.env.POUCHDB_NAME === undefined) {
+  var defaultDir = path.join(path.homedir(), '.cozy-files');
+  var defaultDbPath = path.join(path.homedir(), 
+                                '.cozy-files', 'db');
+  if(!fs.existsSync(defaultDir)) {
+    fs.mkdirSync(defaultDir);
+  }
+  process.env.POUCHDB_NAME = defaultDbPath;
+  process.chdir(defaultDir);
+}
+
+var root = path.join(path.dirname(fs.realpathSync(__filename)), '..', 'build');
+var start = require(path.join(root, 'server')).start;
+var port = process.env.PORT || 9113;
+
+start({root: root, port: port}, function() {});

@@ -12,20 +12,20 @@ module.exports.main = function(req, res, next) {
     function(cb) {
       return CozyInstance.getLocale(cb);
     }, function(cb) {
-      var dataSystem;
-      dataSystem = new Client("http://localhost:9101/");
-      return dataSystem.get('tags', function(err, response, body) {
-        err = err || body.error;
-        return cb(err, body);
-      });
+      return cb(null, []);
     }
   ], (function(_this) {
     return function(err, results) {
       var locale, tags;
+      console.log('hourra');
+      console.log(err);
+      console.log(results);
       if (err) {
         return next(err);
       } else {
         locale = results[0], tags = results[1];
+        console.log(locale);
+        console.log(tags);
         return res.render('index.jade', {
           imports: "window.locale = \"" + locale + "\";\nwindow.tags = \"" + tags + "\".split(',');"
         });

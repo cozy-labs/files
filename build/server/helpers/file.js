@@ -14,7 +14,7 @@ module.exports = {
     return path;
   },
   processAttachment: function(req, res, next, download) {
-    var contentHeader, file;
+    var contentHeader, file, stream;
     file = req.file;
     if (download) {
       contentHeader = "attachment; filename=" + file.name;
@@ -23,25 +23,20 @@ module.exports = {
     }
     res.setHeader('Content-Disposition', contentHeader);
     res.setHeader('Content-Length', file.size);
-    return downloader.download("/data/" + file.id + "/binaries/file", function(stream) {
-      var err;
-      if (stream.statusCode === 200) {
-        stream.pipefilter = function(source, dest) {
-          var XSSmimeTypes, _ref;
-          XSSmimeTypes = ['text/html', 'image/svg+xml'];
-          if (_ref = source.headers['content-type'], __indexOf.call(XSSmimeTypes, _ref) >= 0) {
-            return dest.setHeader('content-type', 'text/plain');
-          }
-        };
-        return stream.pipe(res);
-      } else if (stream.statusCode === 404) {
-        err = new Error('An error occured while downloading the file: ' + 'file not found.');
-        err.status = 404;
-        return next(err);
-      } else {
+    stream = file.getBinary('file', function(err, stream) {
+      if (err) {
+        console.log(err);
         return next(new Error('An error occured while downloading the file.'));
       }
     });
+    stream.pipefilter = function(source, dest) {
+      var XSSmimeTypes, _ref;
+      XSSmimeTypes = ['text/html', 'image/svg+xml'];
+      if (_ref = source.headers['content-type'], __indexOf.call(XSSmimeTypes, _ref) >= 0) {
+        return dest.setHeader('content-type', 'text/plain');
+      }
+    };
+    return stream.pipe(res);
   },
   getFileClass: function(file) {
     var fileClass, type;

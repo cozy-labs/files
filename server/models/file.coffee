@@ -1,5 +1,5 @@
 fs = require 'fs'
-americano = require 'americano-cozy'
+americano = require 'americano-cozy-pouchdb'
 moment = require 'moment'
 feed = require '../lib/feed'
 log = require('printit')

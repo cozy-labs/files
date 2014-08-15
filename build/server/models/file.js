@@ -3,7 +3,7 @@ var Binary, CozyInstance, File, Folder, americano, feed, fs, log, moment;
 
 fs = require('fs');
 
-americano = require('americano-cozy');
+americano = require('americano-cozy-pouchdb');
 
 moment = require('moment');
 
