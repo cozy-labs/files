@@ -17,7 +17,7 @@
     "type": "git",
     "url": "https://github.com/cozy-labs/files.git"
   },
-  "main": "server.js",
+  "main": "build/server.js",
   "dependencies": {
     "americano": "0.3.10",
     "americano-cozy-pouchdb": "0.3.11",
