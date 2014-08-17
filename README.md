@@ -1,6 +1,10 @@
 # [Cozy](http://cozy.io) Files
 
-Standalone version of the Cozy Files application:
+Standalone version of the Cozy Files application.
+
+[See demo](https://demo.cozycloud.cc/apps/files)
+
+Features:
 
 * File Tree
 * File and Folder upload.
