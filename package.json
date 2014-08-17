@@ -2,6 +2,7 @@
   "name": "cozy-files",
   "displayName": "Files",
   "version": "0.5.2",
+  "keywords": ["file", "cloud", "personal", "storage", "simple"],
   "description": "Cozy files allows to manage your files in your cloud via a simple web UI",
   "author": "Cozy Cloud <contact@cozycloud.cc> (http://cozycloud.cc)",
   "licenses": [
