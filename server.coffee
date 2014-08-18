@@ -13,9 +13,9 @@ start = (options, callback) ->
     options.host = process.env.HOST or "0.0.0.0"
     options.root = options.root or __dirname
 
+    configPath = path.join process.cwd(), 'config.json'
     unless fs.existsSync configPath
-        config = apps: {}
-        configPath = path.join process.cwd(), 'config.json'
+        config = {}
         fs.writeFileSync configPath, JSON.stringify config
 
     localization.initialize ->

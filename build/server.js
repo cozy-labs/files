@@ -20,11 +20,9 @@ start = function(options, callback) {
   options.port = options.port;
   options.host = process.env.HOST || "0.0.0.0";
   options.root = options.root || __dirname;
+  configPath = path.join(process.cwd(), 'config.json');
   if (!fs.existsSync(configPath)) {
-    config = {
-      apps: {}
-    };
-    configPath = path.join(process.cwd(), 'config.json');
+    config = {};
     fs.writeFileSync(configPath, JSON.stringify(config));
   }
   return localization.initialize(function() {
