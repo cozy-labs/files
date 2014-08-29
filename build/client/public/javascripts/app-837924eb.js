@@ -3399,20 +3399,7 @@ buf.push("<li class=\"tag\">" + (jade.escape((jade_interp = tag) == null ? '' : 
 buf.push("</ul>");
 if ( !isBeingUploaded)
 {
-buf.push("<div class=\"operations\"><a" + (jade.attr("title", "" + (t('tooltip share')) + "", true, false)) + " class=\"file-share\">");
-if ( model.clearance == 'public')
-{
-buf.push("<span class=\"fa fa-globe\"></span>");
-}
-else if ( model.clearance && model.clearance.length > 0)
-{
-buf.push("<span class=\"fa fa-users\">" + (jade.escape((jade_interp = model.clearance.length) == null ? '' : jade_interp)) + "</span>");
-}
-else
-{
-buf.push("<span class=\"fa fa-lock\"></span>");
-}
-buf.push("</a><a" + (jade.attr("title", "" + (t('tooltip edit')) + "", true, false)) + " class=\"file-edit\"><span class=\"glyphicon glyphicon-edit\"></span></a><a" + (jade.attr("title", "" + (t('tooltip move')) + "", true, false)) + " class=\"file-move\"><span class=\"glyphicon glyphicon-arrow-right\"></span></a><a" + (jade.attr("title", "" + (t('tooltip delete')) + "", true, false)) + " class=\"file-delete\"><span class=\"glyphicon glyphicon-remove-circle\"></span></a><a" + (jade.attr("href", "" + (downloadUrl) + "", true, false)) + " target=\"_blank\"" + (jade.attr("title", "" + (t('tooltip download')) + "", true, false)) + " class=\"file-download\"><span class=\"glyphicon glyphicon-cloud-download\"></span></a></div>");
+buf.push("<div class=\"operations\"><a" + (jade.attr("title", "" + (t('tooltip edit')) + "", true, false)) + " class=\"file-edit\"><span class=\"glyphicon glyphicon-edit\"></span></a><a" + (jade.attr("href", "" + (downloadUrl) + "", true, false)) + " target=\"_blank\"" + (jade.attr("title", "" + (t('tooltip download')) + "", true, false)) + " class=\"file-download\"><span class=\"glyphicon glyphicon-cloud-download\"></span></a></div>");
 }
 buf.push("</div><!-- empty by default--></td><td class=\"size-column-cell\">");
 if ( model.type == 'file')
@@ -3568,20 +3555,7 @@ buf.push("<li class=\"tag\">" + (jade.escape((jade_interp = tag) == null ? '' : 
 buf.push("</ul>");
 if ( !isBeingUploaded)
 {
-buf.push("<div class=\"operations\"><a" + (jade.attr("title", "" + (t('tooltip share')) + "", true, false)) + " class=\"file-share\">");
-if ( model.clearance == 'public')
-{
-buf.push("<span class=\"fa fa-globe\"></span>");
-}
-else if ( model.clearance && model.clearance.length > 0)
-{
-buf.push("<span class=\"fa fa-users\">" + (jade.escape((jade_interp = model.clearance.length) == null ? '' : jade_interp)) + "</span>");
-}
-else
-{
-buf.push("<span class=\"fa fa-lock\"></span>");
-}
-buf.push("</a><a" + (jade.attr("title", "" + (t('tooltip edit')) + "", true, false)) + " class=\"file-edit\"><span class=\"glyphicon glyphicon-edit\"></span></a><a" + (jade.attr("title", "" + (t('tooltip move')) + "", true, false)) + " class=\"file-move\"><span class=\"glyphicon glyphicon-arrow-right\"></span></a><a" + (jade.attr("title", "" + (t('tooltip delete')) + "", true, false)) + " class=\"file-delete\"><span class=\"glyphicon glyphicon-remove-circle\"></span></a><a" + (jade.attr("href", "" + (downloadUrl) + "", true, false)) + " target=\"_blank\"" + (jade.attr("title", "" + (t('tooltip download')) + "", true, false)) + " class=\"file-download\"><span class=\"glyphicon glyphicon-cloud-download\"></span></a></div>");
+buf.push("<div class=\"operations\"><a" + (jade.attr("title", "" + (t('tooltip edit')) + "", true, false)) + " class=\"file-edit\"><span class=\"glyphicon glyphicon-edit\"></span></a><a" + (jade.attr("href", "" + (downloadUrl) + "", true, false)) + " target=\"_blank\"" + (jade.attr("title", "" + (t('tooltip download')) + "", true, false)) + " class=\"file-download\"><span class=\"glyphicon glyphicon-cloud-download\"></span></a></div>");
 }
 buf.push("</div><p class=\"file-path\">" + (jade.escape((jade_interp = model.path) == null ? '' : jade_interp)) + "/" + (jade.escape((jade_interp = model.name) == null ? '' : jade_interp)) + "</p></td><td class=\"size-column-cell\">");
 if ( model.type == 'file')
@@ -3649,33 +3623,11 @@ var __templateData = function template(locals) {
 var buf = [];
 var jade_mixins = {};
 var jade_interp;
-var locals_ = (locals || {}),isPublic = locals_.isPublic,hasPublicKey = locals_.hasPublicKey,query = locals_.query,model = locals_.model,supportsDirectoryUpload = locals_.supportsDirectoryUpload,areNotificationsEnabled = locals_.areNotificationsEnabled,zipUrl = locals_.zipUrl;
+var locals_ = (locals || {}),model = locals_.model,supportsDirectoryUpload = locals_.supportsDirectoryUpload,isPublic = locals_.isPublic,hasPublicKey = locals_.hasPublicKey,zipUrl = locals_.zipUrl;
 buf.push("<div id=\"affixbar\" data-spy=\"affix\" data-offset-top=\"1\"><div class=\"container\"><div class=\"row\"><div class=\"col-lg-12\"><div id=\"crumbs\" class=\"pull-left\"></div><div class=\"pull-right\">");
-if ( !isPublic || hasPublicKey)
-{
-buf.push("<input id=\"search-box\" type=\"search\"" + (jade.attr("value", "" + (query) + "", true, false)) + " class=\"pull-right\"/>");
-}
 if ( model.type != 'search')
 {
-buf.push("<div id=\"upload-buttons\" class=\"pull-right\">");
-if ( model.id != 'root')
-{
-buf.push("<a id=\"share-state\" class=\"btn btn-cozy btn-cozy-contrast\">");
-if ( model.clearance == 'public')
-{
-buf.push("" + (jade.escape((jade_interp = t('public')) == null ? '' : jade_interp)) + "<span class=\"fa fa-globe\"></span>");
-}
-else if ( model.clearance && model.clearance.length > 0)
-{
-buf.push("" + (jade.escape((jade_interp = t('shared')) == null ? '' : jade_interp)) + "<span class=\"fa fa-users\"></span><span>" + (jade.escape(null == (jade_interp = model.clearance.length) ? "" : jade_interp)) + "</span>");
-}
-else
-{
-buf.push("" + (jade.escape((jade_interp = t('private')) == null ? '' : jade_interp)) + "<span class=\"fa fa-lock\"></span>");
-}
-buf.push("</a>&nbsp;");
-}
-buf.push("<div id=\"upload-btngroup\" class=\"btn-group\"><a id=\"button-upload-new-file\"" + (jade.attr("title", t('upload button'), true, false)) + " class=\"btn btn-cozy btn-cozy\"><input id=\"uploader\" type=\"file\" multiple=\"multiple\"/><img src=\"images/add-file.png\"/></a>");
+buf.push("<div id=\"upload-buttons\" class=\"pull-right\"><div id=\"upload-btngroup\" class=\"btn-group\"><a id=\"button-upload-new-file\"" + (jade.attr("title", t('upload button'), true, false)) + " class=\"btn btn-cozy btn-cozy\"><input id=\"uploader\" type=\"file\" multiple=\"multiple\"/><img src=\"images/add-file.png\"/></a>");
 if ( supportsDirectoryUpload)
 {
 buf.push("<a data-toggle=\"dropdown\" class=\"btn btn-cozy dropdown-toggle\"><span class=\"caret\"></span></a><ul class=\"dropdown-menu\"><li><a id=\"button-upload-folder\"><input id=\"folder-uploader\" type=\"file\" directory=\"directory\" mozdirectory=\"mozdirectory\" webkitdirectory=\"webkitdirectory\"/><span>Upload a folder</span></a></li></ul>");
@@ -3683,14 +3635,6 @@ buf.push("<a data-toggle=\"dropdown\" class=\"btn btn-cozy dropdown-toggle\"><sp
 buf.push("</div>&nbsp;<a id=\"button-new-folder\"" + (jade.attr("title", t('new folder button'), true, false)) + " class=\"btn btn-cozy\"><img src=\"images/add-folder.png\"/></a><div id=\"bulk-actions-btngroup\" class=\"btn-group\"><a id=\"button-bulk-move\" class=\"btn btn-cozy btn-cozy\">Move all&nbsp;<span class=\"glyphicon glyphicon-arrow-right\"></span></a><a id=\"button-bulk-remove\" class=\"btn btn-cozy btn-cozy\">Remove all&nbsp;<span class=\"glyphicon glyphicon-remove-circle\"></span></a></div></div>");
 if ( isPublic && hasPublicKey)
 {
-if ( areNotificationsEnabled)
-{
-buf.push("<a id=\"notifications\" class=\"btn btn-cozy toggled\">" + (jade.escape(null == (jade_interp = t('notifications enabled')) ? "" : jade_interp)) + "</a>");
-}
-else
-{
-buf.push("<a id=\"notifications\" class=\"btn btn-cozy\">" + (jade.escape(null == (jade_interp = t('notifications disabled')) ? "" : jade_interp)) + "</a>");
-}
 buf.push("&nbsp;");
 }
 buf.push("<a id=\"download-link\"" + (jade.attr("href", "" + (zipUrl) + "", true, false)) + (jade.attr("title", t("download"), true, false)) + " class=\"btn btn-cozy-contrast\">" + (jade.escape((jade_interp = t("download")) == null ? '' : jade_interp)) + "&nbsp;<i class=\"icon-arrow-down icon-white\"></i></a>");
