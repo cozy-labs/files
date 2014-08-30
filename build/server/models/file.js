@@ -168,11 +168,10 @@ File.prototype.destroyWithBinary = function(callback) {
   }
 };
 
-if (process.env.NODE_ENV === 'test') {
-  File.prototype.index = function(fields, callback) {
-    return callback(null);
-  };
-  File.prototype.search = function(query, callback) {
-    return callback(null, []);
-  };
-}
+File.prototype.index = function(fields, callback) {
+  return callback(null);
+};
+
+File.prototype.search = function(query, callback) {
+  return callback(null, []);
+};

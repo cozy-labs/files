@@ -73,7 +73,6 @@ Folder::updateParentModifDate = (callback) ->
             callback()
 
 
-if process.env.NODE_ENV is 'test'
-    Folder::index = (fields, callback) -> callback null
-    Folder::search = (query, callback) -> callback null, []
+Folder::index = (fields, callback) -> callback null
+Folder::search = (query, callback) -> callback null, []
 

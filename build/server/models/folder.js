@@ -118,11 +118,10 @@ Folder.prototype.updateParentModifDate = function(callback) {
   })(this));
 };
 
-if (process.env.NODE_ENV === 'test') {
-  Folder.prototype.index = function(fields, callback) {
-    return callback(null);
-  };
-  Folder.prototype.search = function(query, callback) {
-    return callback(null, []);
-  };
-}
+Folder.prototype.index = function(fields, callback) {
+  return callback(null);
+};
+
+Folder.prototype.search = function(query, callback) {
+  return callback(null, []);
+};

@@ -125,6 +125,5 @@ File::destroyWithBinary = (callback) ->
     else
         @destroy callback
 
-if process.env.NODE_ENV is 'test'
-    File::index = (fields, callback) -> callback null
-    File::search =  (query, callback) -> callback null, []
+File::index = (fields, callback) -> callback null
+File::search =  (query, callback) -> callback null, []
