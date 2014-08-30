@@ -21,6 +21,7 @@ module.exports =
     "modal error folder create" : "Le dossier n'a pas pu être créé"
     "modal error folder exists" : "Désolé, un fichier ou un dossier a déjà le même nom"
     "modal error zip empty folder" : "Vous ne pouvez pas télécharger un dossier vide en tant que ZIP."
+    "upload running": "Upload en cours. Ne quittez pas votre navigateur."
 
     # file view
     "modal are you sure"        : "Etes-vous sûr ?"
@@ -51,7 +52,7 @@ module.exports =
        et %{smart_count} autres fichiers
     """
     "already exists"      : "existent déjà."
-    "failed to upload"    : "n'ont pas pu être envoyé au serveur"
+    "failed to upload"    : "n'ont pas pu être envoyés au serveur"
     "upload complete"     : """
         Le fichier a été transféré. ||||
         %{smart_count} fichiers ont été transférés.
@@ -111,7 +112,7 @@ module.exports =
     "download file": "Consulter le fichier"
 
      # clearance modal
-    "also have access"                : "Ces personnes ont égalment accès, car ils ont accès à un dossier parent"
+    "also have access"                : "Ces personnes ont également accès, car ils ont accès à un dossier parent"
     "cancel"                          : "Annuler"
     "copy paste link"                 : "Pour donner accès à votre contact envoyez lui ce lien : "
     "details"                         : "Details"
@@ -138,7 +139,7 @@ module.exports =
         Il semble que vous ayez oublié d'appuyer sur le boutton Add
     """
     "share confirm save"              : """
-        Les changements effectués sur les permissions ne seront pas sauvegardés. Etes vous sur ?
+        Les changements effectués sur les permissions ne seront pas sauvegardés. Êtes vous sûr ?
     """
     "yes forgot"                      : "Retour"
     "no forgot"                       : "Ok"

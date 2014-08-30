@@ -22,8 +22,7 @@ module.exports =
             contentHeader = "attachment; filename=#{file.name}"
         else
             contentHeader = "inline; filename=#{file.name}"
-        res.setHeader 'Content-Disposition', contentHeader
-        res.setHeader 'Content-Length', file.size
+        res.setHeader 'content-disposition', contentHeader
 
         # Perform download with the lowel level node js api to avoid too much
         # memory consumption.

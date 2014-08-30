@@ -21,8 +21,7 @@ module.exports = {
     } else {
       contentHeader = "inline; filename=" + file.name;
     }
-    res.setHeader('Content-Disposition', contentHeader);
-    res.setHeader('Content-Length', file.size);
+    res.setHeader('content-disposition', contentHeader);
     stream = file.getBinary('file', function(err, stream) {
       if (err) {
         console.log(err);
