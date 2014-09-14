@@ -18,7 +18,7 @@ Features:
 
 ## Run
 
-Run it from anywhere, data will be stored in the `~/.cozy-files`folder:
+Run it from any directory, data will be stored in the `~/.cozy-files` folder:
 
     cozy-files
 
