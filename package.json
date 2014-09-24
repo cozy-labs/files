@@ -26,7 +26,7 @@
   },
   "main": "build/server.js",
   "dependencies": {
-    "americano": "0.3.10",
+    "americano": "0.3.11",
     "americano-cozy-pouchdb": "0.3.16",
     "async": "0.9.0",
     "axon": "0.6.1",
