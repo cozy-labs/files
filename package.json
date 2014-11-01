@@ -56,34 +56,5 @@
   "scripts": {
     "test": "cake --use-js tests",
     "start": "node build/server.js"
-  },
-  "cozy-permissions": {
-    "File": {
-      "description": "Store files in your cozy"
-    },
-    "Folder": {
-      "description": "Store folders in your cozy"
-    },
-    "Notification": {
-      "description": "Display a notification when guests change file"
-    },
-    "send mail": {
-      "description": "Send links by mail"
-    },
-    "CozyInstance": {
-      "description": "To display the application in the right language, the application requires access to your instance informations."
-    },
-    "Contact": {
-      "description": "To easily find your contact when sharing files & folders."
-    },
-    "User": {
-      "description": "Need information for the from part of email sent."
-    },
-    "send mail from user": {
-      "description": "Send links by mail"
-    },
-    "send mail to user": {
-      "description": "Send links by mail"
-    }
   }
 }
