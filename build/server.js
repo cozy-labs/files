@@ -31,7 +31,9 @@ start = function(options, callback) {
       initialize = require('./server/initialize');
       app.server = server;
       app.use(errorHandler);
-      return initialize.afterStart(app, server, callback);
+      return initialize.afterStart(app, server, function(err) {
+        return callback(err, app, server);
+      });
     });
   });
 };
