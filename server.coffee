@@ -23,7 +23,8 @@ start = (options, callback) ->
             initialize = require './server/initialize'
             app.server = server
             app.use errorHandler
-            initialize.afterStart app, server, callback
+            initialize.afterStart app, server, (err) ->
+                callback err, app, server
 
 if not module.parent
     port = process.env.PORT or 9113
