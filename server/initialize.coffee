@@ -38,4 +38,4 @@ module.exports.afterStart = (app, server, callback) ->
     #realtime.on 'folder.update', (event, id) ->
         #updateIndex(Folder, id)
 
-    callback app, server if callback?
+    callback null, app, server if callback?

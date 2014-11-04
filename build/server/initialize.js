@@ -35,6 +35,6 @@ module.exports.afterStart = function(app, server, callback) {
     })(this));
   };
   if (callback != null) {
-    return callback(app, server);
+    return callback(null, app, server);
   }
 };
