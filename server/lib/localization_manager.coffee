@@ -1,6 +1,6 @@
 jade = require 'jade'
 fs = require 'fs'
-cozydb = require 'cozydb'
+cozydb = require 'cozy-db-pouchdb'
 Polyglot = require 'node-polyglot'
 
 getTemplateExt = require '../helpers/get_template_ext'

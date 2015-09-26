@@ -23,7 +23,7 @@ Folder = require('../models/folder');
 
 File = require('../models/file');
 
-cozydb = require('cozydb');
+cozydb = require('cozy-db-pouchdb');
 
 KB = 1024;
 

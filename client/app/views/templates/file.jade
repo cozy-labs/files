@@ -57,28 +57,12 @@ td
     block actions
       if !isUploading && !isBroken && !isServerUploading
         .operations
-<<<<<<< HEAD
-          //-a.file-share(title="#{t('tooltip share')}")
-            //-if model.clearance == 'public'
-              //-span.fa.fa-globe
-            //-else if model.clearance && model.clearance.length > 0
-              //-span.fa.fa-users #{model.clearance.length}
-            //-else
-              //-span.fa.fa-lock
-          a.file-edit(title="#{t('tooltip edit')}")
-            span.glyphicon.glyphicon-edit
-          //-a.file-move(title="#{t('tooltip move')}")
-            //-span.glyphicon.glyphicon-arrow-right
-          //-a.file-delete(title="#{t('tooltip delete')}")
-            //-span.glyphicon.glyphicon-remove-circle
-=======
           a.file-tags(title="#{t('tooltip tag')}")
             span.fa.fa-tag
           a.file-share(title="#{t('tooltip share')}")
             span.fa.fa-share-alt
           a.file-edit(title="#{t('tooltip edit')}")
             span.fa.fa-pencil-square-o
->>>>>>> 0759785e6a73787ae4d6166d455c268bcac75f20
           a.file-download(
               href="#{downloadUrl}",
               target="_blank", title="#{t('tooltip download')}")

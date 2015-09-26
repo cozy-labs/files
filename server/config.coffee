@@ -45,11 +45,7 @@ config =
         americano.logger 'short'
     ]
     plugins: [
-<<<<<<< HEAD
-        'americano-cozy-pouchdb'
-=======
-        'cozydb'
->>>>>>> 0759785e6a73787ae4d6166d455c268bcac75f20
+        'cozy-db-pouchdb'
     ]
 
 module.exports = config

@@ -1,4 +1,4 @@
-americano = require 'americano-cozy-pouchdb'
+americano = require 'cozy-db-pouchdb'
 path = require 'path'
 log = require('printit')
     prefix: 'Files'

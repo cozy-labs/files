@@ -86,9 +86,6 @@ module.exports = {
   'clearance/contacts/:contactid.jpg': {
     get: sharing.contactPicture
   },
-  'clearance/contacts/:contactid': {
-    get: sharing.contact
-  },
   'clearance/:shareid': {
     get: sharing.details,
     put: sharing.change

@@ -3,11 +3,7 @@ var Contact, DataPoint, cozydb,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
-<<<<<<< HEAD
-americano = require('americano-cozy-pouchdb');
-=======
-cozydb = require('cozydb');
->>>>>>> 0759785e6a73787ae4d6166d455c268bcac75f20
+cozydb = require('cozy-db-pouchdb');
 
 DataPoint = (function(superClass) {
   extend(DataPoint, superClass);

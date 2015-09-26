@@ -13,16 +13,7 @@ User = require('../models/user');
 
 localization = require('../lib/localization_manager');
 
-<<<<<<< HEAD
-try {
-  CozyAdapter = require('americano-cozy-pouchdb/node_modules/jugglingdb-pouchdb-adapter');
-} catch (_error) {
-  e = _error;
-  CozyAdapter = require('jugglingdb-pouchdb-adapter');
-}
-=======
-cozydb = require('cozydb');
->>>>>>> 0759785e6a73787ae4d6166d455c268bcac75f20
+cozydb = require('cozy-db-pouchdb');
 
 cozydomain = 'http://your.friends.cozy.url/';
 

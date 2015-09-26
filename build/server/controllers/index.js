@@ -3,7 +3,7 @@ var async, cozydb;
 
 async = require('async');
 
-cozydb = require('cozydb');
+cozydb = require('cozy-db-pouchdb');
 
 module.exports.main = function(req, res, next) {
   return async.parallel([
@@ -12,29 +12,14 @@ module.exports.main = function(req, res, next) {
     }, function(cb) {
       return cozydb.api.getCozyTags(cb);
     }, function(cb) {
-<<<<<<< HEAD
-      return cb(null, []);
-    }
-  ], (function(_this) {
-    return function(err, results) {
-      var locale, tags;
-      console.log('hourra');
-      console.log(err);
-      console.log(results);
-      if (err) {
-        return next(err);
-      } else {
-        locale = results[0], tags = results[1];
-        console.log(locale);
-        console.log(tags);
-        return res.render('index.jade', {
-          imports: "window.locale = \"" + locale + "\";\nwindow.tags = \"" + tags + "\".split(',');"
-=======
       return cozydb.api.getCozyInstance(cb);
     }
   ], (function(_this) {
     return function(err, results) {
       var domain, instance, locale, tags;
+      console.log('hourra');
+      console.log(err);
+      console.log(results);
       if (err) {
         return next(err);
       } else {
@@ -53,7 +38,6 @@ module.exports.main = function(req, res, next) {
         }
         return res.render("index", {
           imports: "window.locale = \"" + locale + "\";\nwindow.tags = \"" + (tags.join(',').replace('\"', '')) + "\".split(',');\nwindow.domain = \"" + domain + "\";"
->>>>>>> 0759785e6a73787ae4d6166d455c268bcac75f20
         });
       }
     };

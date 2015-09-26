@@ -59,22 +59,22 @@ module.exports =
     'search/content':
         post: folders.searchContent
 
-    # clearance
+    ## clearance
     'shareid':
         param: sharing.fetch
     'clearance/contacts':
         get: sharing.contactList
     'clearance/contacts/:contactid.jpg':
         get: sharing.contactPicture
-    'clearance/contacts/:contactid':
-        get: sharing.contact
+    #'clearance/contacts/:contactid':
+        #get: sharing.contact
     'clearance/:shareid':
         get: sharing.details
         put: sharing.change
     'clearance/:shareid/send':
         post: sharing.sendAll
 
-    # public access
+    ## public access
     'public/folders':
         post: [public_auth.checkClearance('w', 'folder'), folders.create]
     'public/folders/:folderid/content':
@@ -98,3 +98,4 @@ module.exports =
 
     'public/search/content':
         post: folders.searchContent
+

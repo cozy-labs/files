@@ -8,33 +8,6 @@ module.exports = {
     }
     return path;
   },
-<<<<<<< HEAD
-  processAttachment: function(req, res, next, download) {
-    var contentHeader, file, stream;
-    file = req.file;
-    if (download) {
-      contentHeader = "attachment; filename=" + file.name;
-    } else {
-      contentHeader = "inline; filename=" + file.name;
-    }
-    res.setHeader('content-disposition', contentHeader);
-    stream = file.getBinary('file', function(err, stream) {
-      if (err) {
-        console.log(err);
-        return next(new Error('An error occured while downloading the file.'));
-      }
-    });
-    stream.pipefilter = function(source, dest) {
-      var XSSmimeTypes, _ref;
-      XSSmimeTypes = ['text/html', 'image/svg+xml'];
-      if (_ref = source.headers['content-type'], __indexOf.call(XSSmimeTypes, _ref) >= 0) {
-        return dest.setHeader('content-type', 'text/plain');
-      }
-    };
-    return stream.pipe(res);
-  },
-=======
->>>>>>> 0759785e6a73787ae4d6166d455c268bcac75f20
   getFileClass: function(file) {
     var fileClass, type;
     type = file.headers['content-type'];

@@ -7,54 +7,14 @@ mime = require 'mime'
 log = require('printit')
     prefix: 'files'
 
-cozydb = require 'cozydb'
+cozydb = require 'cozy-db-pouchdb'
 File = require '../models/file'
 Folder = require '../models/folder'
 feed = require '../lib/feed'
 sharing = require '../helpers/sharing'
 pathHelpers = require '../helpers/path'
-<<<<<<< HEAD
-{normalizePath, processAttachment, getFileClass} = require '../helpers/file'
-
-
-# Dirty stuff while waiting that combined stream library get fixed and included
-# in every dependencies.
-#monkeypatch = (ctx, fn, after) ->
-    #old = ctx[fn]
-
-    #ctx[fn] = ->
-        #after.apply @, arguments
-
-
-#combinedStreamPath = 'americano-cozy/' + \
-                     #'node_modules/jugglingdb-cozy-adapter/' + \
-                     #'node_modules/request-json/' + \
-                     #'node_modules/request/' + \
-                     #'node_modules/form-data/' + \
-                     #'node_modules/combined-stream'
-
-#monkeypatch require(combinedStreamPath).prototype, 'pause', ->
-    #if not @pauseStreams
-       #return
-
-    #if(@pauseStreams and typeof(@_currentStream.pause) is 'function')
-        #@_currentStream.pause()
-    #@emit 'pause'
-
-#monkeypatch require(combinedStreamPath).prototype, 'resume', ->
-    #if not @_released
-        #@_released = true
-        #@writable = true
-        #@_getNext()
-
-    #if @pauseStreams and typeof(@_currentStream.resume) is 'function'
-        #@_currentStream.resume()
-
-    #@emit 'resume'
-# End of dirty stuff
-=======
 {normalizePath, getFileClass} = require '../helpers/file'
->>>>>>> 0759785e6a73787ae4d6166d455c268bcac75f20
+
 
 baseController = new cozydb.SimpleController
     model: File
@@ -381,15 +341,12 @@ module.exports.create = (req, res, next) ->
     form.on 'error', (err) ->
         log.error err
 
-<<<<<<< HEAD
-=======
     form.parse req
 
 module.exports.publicCreate = (req, res, next) ->
     req.public = true
     module.exports.create req, res, next
 
->>>>>>> 0759785e6a73787ae4d6166d455c268bcac75f20
 # There is two ways to modify a file:
 
 # * change its tags: simple modification

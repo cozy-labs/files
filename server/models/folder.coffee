@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-americano = require 'americano-cozy-pouchdb'
-=======
-cozydb = require 'cozydb'
->>>>>>> 0759785e6a73787ae4d6166d455c268bcac75f20
+cozydb = require 'cozy-db-pouchdb'
 moment = require 'moment'
 async = require 'async'
 
