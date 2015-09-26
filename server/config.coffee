@@ -1,35 +1,43 @@
 path = require 'path'
 americano = require 'americano'
+errorHandler = require './middlewares/errors'
+getTemplateExt = require './helpers/get_template_ext'
 
 staticMiddleware = americano.static path.resolve(__dirname, '../client/public'),
             maxAge: 86400000
 
 publicStatic = (req, res, next) ->
-    url = req.url
-    req.url = req.url.replace '/public/assets', ''
-    req.url = req.url.replace '/public/folders', ''
-    staticMiddleware req, res, (err) ->
-        req.url = url
-        next err
+
+    # Allows assets to be loaded from any route
+    detectAssets = /\/(stylesheets|javascripts|images|fonts)+\/(.+)$/
+    assetsMatched = detectAssets.exec req.url
+
+    if assetsMatched?
+        req.url = assetsMatched[0]
+
+    staticMiddleware req, res, (err) -> next err
 
 GB = 1024 * 1024 * 1024
 
 config =
     common:
         set:
-            'view engine': 'jade'
+            'view engine': getTemplateExt()
             'views': path.resolve __dirname, 'views'
+
+        engine:
+            js: (path, locales, callback) ->
+                callback null, require(path)(locales)
+
         use: [
             americano.bodyParser()
-            require('cozy-i18n-helper').middleware
-            americano.errorHandler
-                dumpExceptions: true
-                showStack: true
-
             staticMiddleware
             publicStatic
-
         ]
+        afterStart: (app, server) ->
+            # move here necessary after express 4.4
+            app.use errorHandler
+
     development: [
         americano.logger 'dev'
     ]
@@ -37,7 +45,11 @@ config =
         americano.logger 'short'
     ]
     plugins: [
+<<<<<<< HEAD
         'americano-cozy-pouchdb'
+=======
+        'cozydb'
+>>>>>>> 0759785e6a73787ae4d6166d455c268bcac75f20
     ]
 
 module.exports = config

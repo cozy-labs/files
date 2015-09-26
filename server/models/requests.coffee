@@ -1,18 +1,19 @@
+<<<<<<< HEAD
+=======
+cozydb = require 'cozydb'
+
+>>>>>>> 0759785e6a73787ae4d6166d455c268bcac75f20
 module.exports =
     file:
-        all: (doc) -> emit doc._id, doc
-        byFolder: (doc) -> emit doc.path, doc
+        all: cozydb.defaultRequests.all
+        byTag: cozydb.defaultRequests.tags
+        byFolder: cozydb.defaultRequests.by 'path'
         byFullPath: (doc) -> emit (doc.path + '/' + doc.name), doc
-        byTag: (doc) -> emit(tag, doc) for tag in doc.tags or []
-
     folder:
-        all: (doc) -> emit doc._id, doc
-        byFolder: (doc) -> emit doc.path, doc
+        all: cozydb.defaultRequests.all
+        byTag: cozydb.defaultRequests.tags
+        byFolder: cozydb.defaultRequests.by 'path'
         byFullPath: (doc) -> emit (doc.path + '/' + doc.name), doc
-        byTag: (doc) -> emit(tag, doc) for tag in doc.tags or []
 
     contact:
-        all: (doc) -> emit doc._id, doc
-
-    user:
-        all: (doc) -> emit doc._id, doc
+        all: cozydb.defaultRequests.all

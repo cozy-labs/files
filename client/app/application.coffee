@@ -19,7 +19,7 @@ module.exports =
         @baseCollection = new FileCollection()
 
         # queue to allow new uploads while uploading
-        @uploadQueue = new UploadQueue()
+        @uploadQueue = new UploadQueue @baseCollection
 
         @socket = new SocketListener()
         @socket.watch @baseCollection
@@ -28,7 +28,8 @@ module.exports =
         @router = new Router()
 
         # Generate the root folder
-        # In shared area there are more properties because the root is an actual folder
+        # In shared area there are more properties because the root is an
+        # actual folder
         if window.rootFolder?
             @root = new File window.rootFolder
             @root.canUpload = window.canUpload or false
@@ -42,7 +43,6 @@ module.exports =
                 name: t 'root folder name'
                 type: "folder"
         @baseCollection.add @root
-
         # for easy debugging in browser (and dirty tricks)
         window.app = @
 
@@ -50,3 +50,4 @@ module.exports =
 
         # Makes this object immuable.
         Object.freeze this if typeof Object.freeze is 'function'
+

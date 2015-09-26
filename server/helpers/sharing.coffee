@@ -3,15 +3,18 @@ NotificationHelper = require 'cozy-notifications-helper'
 
 File = require '../models/file'
 Folder = require '../models/folder'
-CozyInstance = require '../models/cozy_instance'
 User = require '../models/user'
 localization = require '../lib/localization_manager'
 
+<<<<<<< HEAD
 try CozyAdapter = require('americano-cozy-pouchdb/node_modules/jugglingdb-pouchdb-adapter')
 catch e then CozyAdapter = require('jugglingdb-pouchdb-adapter')
 
+=======
+cozydb = require 'cozydb'
+>>>>>>> 0759785e6a73787ae4d6166d455c268bcac75f20
 cozydomain = 'http://your.friends.cozy.url/'
-CozyInstance.getURL (err, domain) =>
+cozydb.api.getCozyDomain (err, domain) =>
     return console.log err if err
     cozydomain = domain
 
@@ -34,19 +37,23 @@ module.exports.limitedTree = (folder, req, perm, callback) ->
         perm = 'r'
 
     folder.getParents (err, parents) ->
-        return callback err if err
+        return callback [] if err
+
+        # adds the current folder to its parent list so its clearance can be
+        # checked
+        parents.push folder
 
         # remove start of path until first visible
         scan = ->
             tested = parents[0]
-            return callback [] unless tested
-            clearance.check tested, perm, req, (err, authorized) ->
+            return callback [] unless tested?
+            clearance.check tested, perm, req, (err, rule) ->
                 return callback [] if err
-                if not authorized
+                if not rule
                     parents.shift()
                     scan()
                 else
-                    callback parents, authorized
+                    callback parents, rule
         scan()
 
 # check that doc is viewable by req
@@ -127,7 +134,7 @@ doSendNotif = ->
                     displayName: displayName
                     localization: localization
 
-            CozyAdapter.sendMailFromUser mailOptions, (err) ->
+            cozydb.api.sendMailFromUser mailOptions, (err) ->
                 console.log 'sent update mail to ', item.to
                 console.log err if err
 

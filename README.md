@@ -1,20 +1,38 @@
 # [Cozy](http://cozy.io) Files
 
+<<<<<<< HEAD
 Standalone version of the Cozy Files application.
 
 [See demo](https://demo.cozycloud.cc/apps/files)
 
 Features:
+=======
+Cozy Files makes your file management easy. Main features are:
+>>>>>>> 0759785e6a73787ae4d6166d455c268bcac75f20
 
-* File Tree
-* File and Folder upload.
-* File and Folder sharing (via URLs)
-* File search
-* File and Folder tagging (and search by tag)
+* File tree
+* Files and folders upload.
+* Files and folders sharing (via URLs)
+* Files and folders search
+* Files and folders tagging (and search by tag)
 
 ## Install
 
+<<<<<<< HEAD
     sudo npm install cozy-files -g
+=======
+We assume here that the Cozy platform is correctly [installed](http://cozy.io/host/install.html)
+ on your server.
+
+You can simply install the Files application via the app registry. Click on the *Chose Your Apps* button located on the right of your Cozy Home.
+
+From the command line you can type this command:
+
+    cozy-monitor install files
+
+
+## Contribution
+>>>>>>> 0759785e6a73787ae4d6166d455c268bcac75f20
 
 ## Run
 
@@ -32,8 +50,7 @@ Run it with:
 
     npm start
 
-Each modification of the server requires a new build, here is how to run a
-build:
+Each modification of the server requires a new build, here is how to run a build:
 
     cake build
 
@@ -42,6 +59,43 @@ Each modification of the client requires a specific build too.
     cd client
     brunch build
 
+<<<<<<< HEAD
+=======
+## Tests
+
+Cozy Files manages files in your Cozy platform.
+
+![Build
+Status](https://travis-ci.org/mycozycloud/cozy-files.png?branch=master)
+
+To run tests, use the following command into the Cozy Files folder:
+
+    npm test
+
+That's how Travis run the tests and it's what should be working when pushing code. It will run the tests against the `build/` version of the code.
+
+During development, you can use:
+
+    cake tests
+
+That will also run the tests on both the server and the client but you don't have to build your code each time since it will run them against `server/` and `client/` rather than `build/`.
+
+If you only want to run the tests for the server, use
+
+    cake tests:server
+
+If you only want to run the tests for the client, use
+
+    cake tests:client
+
+In order to run the tests, you must have the Data System started. Also, for client tests, you need to install [CasperJS](http://casperjs.org/)
+
+There are two options that can be used:
+
+* `--use-js` will run the tests based on the `build/` folder
+* `--use-server` will start a server during client tests
+
+>>>>>>> 0759785e6a73787ae4d6166d455c268bcac75f20
 ## Icons
 
 by [iconmonstr](http://iconmonstr.com/)
@@ -68,6 +122,6 @@ profiles you.
 You can reach the Cozy Community by:
 
 * Chatting with us on IRC #cozycloud on irc.freenode.net
-* Posting on our [Forum](https://groups.google.com/forum/?fromgroups#!forum/cozy-cloud)
-* Posting issues on the [Github repos](https://github.com/mycozycloud/)
+* Posting on our [Forum](https://forum.cozy.io/)
+* Posting issues on the [Github repos](https://github.com/cozy/)
 * Mentioning us on [Twitter](http://twitter.com/mycozycloud)

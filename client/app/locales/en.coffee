@@ -1,5 +1,11 @@
 module.exports =
 
+    "file broken indicator": "Broken file"
+    "file broken remove": "Remove broken file"
+
+    # misc
+    "or"                        : "or"
+
     # folder view
     "modal error"               : "Error"
     "modal ok"                  : "OK"
@@ -8,8 +14,16 @@ module.exports =
     "modal error get content"   : "An error occurred while retrieving content of folder \"%{folderName}\" from the server"
     "modal error empty name"    : "The name can't be empty"
     "modal error file invalid"  : "doesn't seem to be a valid file"
+    'modal error firefox dragdrop folder': """
+Mozilla Firefox doesn't support folder uploading. If you need this
+feature, it's available in Chromium, Chrome and Safari browsers.
+"""
+
+    "modal error existing folder": "Folder \"%{name}\" already exists. It is currently not possible to overwrite a folder."
 
     "root folder name"          : "root"
+
+    "confirmation reload"      : "An operation is in progress, are you sure you want to reload the page?"
 
     # breadcrumbs
     "breadcrumbs search title"  : "Search"
@@ -21,7 +35,7 @@ module.exports =
     "modal error folder create" : "Folder could not be created"
     "modal error folder exists" : "Sorry, a file or folder having this name already exists"
     "modal error zip empty folder" : "You can't download an empty folder as a ZIP."
-    "upload running": "Upload is running. Do not close your browser"
+    "upload running": "Upload is progress. Do not close your browser"
 
 
     # file view
@@ -45,7 +59,8 @@ module.exports =
     "tooltip delete"          : "Delete"
     "tooltip edit"            : "Rename"
     "tooltip download"        : "Download"
-    "tooltip share"            : "Share"
+    "tooltip share"           : "Share"
+    "tooltip tag"             : "Tag"
 
     # folder template
     'and x files'         : """
@@ -59,6 +74,18 @@ module.exports =
         %{smart_count} files successfully uploaded.
     """
 
+    "chrome error dragdrop title": "Files are going to be ignored"
+    "chrome error dragdrop content": """
+        Due to a bug in Chrome, the following file: %{files} is going to be
+        ignored because it has an accent in its name. You can still add
+        it by using the button on the top right of your screen. ||||
+        Due to a bug in Chrome, the following files: %{files} are going to be
+        ignored because they have an accent in their name. You can still add
+        them by using the button on the top right of your screen.
+    """
+    "chrome error submit": "Ok"
+
+
     "upload caption"            : "Upload a new file"
     "upload msg"                : "Drag files or click here to choose files."
     "upload msg selected"       : """
@@ -71,18 +98,29 @@ module.exports =
     "upload button"             : "Upload a file"
     "upload success"            : "Upload successfuly completed!"
     "upload end button"         : "Close"
-    "total progress"            : "Total progress"
+    "total progress"            : "in progress…"
 
     "new folder caption"        : "Add a new folder"
     "new folder msg"            : "Create a folder named:"
     "new folder close"          : "Close"
     "new folder send"           : "Create Folder"
     "new folder button"         : "Create a new folder"
+    "new folder"                : "new folder"
+
+    "download all"              : "Download the selection"
+    "move all"                  : "Move the selection"
+    "remove all"                : "Remove the selection"
 
     "drop message"              : "Drop your files here to automatically add them"
 
     "upload folder msg"         : "Upload a folder"
     "upload folder separator"   : "or"
+
+    "overwrite modal title"     : "A file already exist"
+    "overwrite modal content"   : "Do you want to overwrite \"%{fileName}\"?"
+    "overwrite modal remember label" : "Apply this decision to all conflicts"
+    "overwrite modal yes button": "Overwrite"
+    "overwrite modal no button" : "Skip"
 
     "folder"                    : "Folder"
     "image"                     : "Image"
@@ -98,7 +136,7 @@ module.exports =
     "type"                      : "Type"
     "size"                      : "Size"
     "date"                      : "Last update"
-    "download"                  : "Download"
+    "download"                  : "Download all"
     "MB"                        : "MB"
     "KB"                        : "KB"
     "B"                         : "B"
@@ -123,21 +161,24 @@ module.exports =
     "inherited from"                  : "inherited from"
     "modal question folder shareable" : "Select share mode for this folder"
     "modal shared folder custom msg"  : "Enter email and press enter"
-    "modal shared folder link msg"    : "Send this link to let people access this folder"
+    "modal shared public link msg"    : "Send this link to let people access this folder:"
+    "modal shared with people msg"    : "Give access to a selection of contacts. Type their emails or name in the field and press enter (an email will be sent to them when you will close this window):"
     "modal send mails"                : "Send a notification"
     "modal question file shareable"   : "Select share mode for this file"
     "modal shared file custom msg"    : "Enter email and press enter"
     "modal shared file link msg"      : "Send this link to let people access this file"
-    "only you can see"                : "Only you and the people listed below can access this resource"
+    "only you can see"                : "Only you can access this resource"
     "public"                          : "Public"
     "private"                         : "Private"
     "shared"                          : "Shared"
+    "share"                           : "Share"
     "save"                            : "Save"
     "see link"                        : "See link"
     "send mails question"             : "Send a notification email to:"
     "sharing"                         : "Sharing"
     "revoke"                          : "Revoke"
-    "forced public"                   : "This is public because one of the parent folder is public:"
+    "forced public"                   : "The current file/folder is shared because one of its parent folders is shared."
+    "forced shared"                   : "The current file/folder is shared because one of its parent folders is shared. Here is the list of guests who can access it:"
     "confirm"                         : "Confirm"
     "share forgot add"                : """
         Looks like you forgot to click the Add button
@@ -145,6 +186,11 @@ module.exports =
     "share confirm save"              : """
         The changes you made to the permissions will not be saved. Is that what you want ?
     """
+    "mail not sent"                   : "Mail not sent"
+    "postfix error"                   : """ Mail not sent.
+                                            Can you check that all recipient adresses are correct
+                                            and that your Cozy is well configured to send messages ?
+                                        """
     "yes forgot"                      : "Back"
     "no forgot"                       : "It's ok"
     "perm"                            : "can "
@@ -164,6 +210,8 @@ module.exports =
     'error occured while moving element': 'An error occured while moving element'
 
     'file successfully moved to': 'File successfully moved to'
+
+    'plugin modal close': 'Close'
 
     # Bulk move modal
     'moving selected elements': 'Moving selected elements'

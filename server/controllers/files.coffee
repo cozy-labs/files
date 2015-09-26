@@ -1,16 +1,19 @@
 fs = require 'fs'
 async = require 'async'
 moment = require 'moment'
+crypto = require 'crypto'
 multiparty = require 'multiparty'
 mime = require 'mime'
 log = require('printit')
     prefix: 'files'
 
+cozydb = require 'cozydb'
 File = require '../models/file'
 Folder = require '../models/folder'
 feed = require '../lib/feed'
 sharing = require '../helpers/sharing'
 pathHelpers = require '../helpers/path'
+<<<<<<< HEAD
 {normalizePath, processAttachment, getFileClass} = require '../helpers/file'
 
 
@@ -49,7 +52,14 @@ pathHelpers = require '../helpers/path'
 
     #@emit 'resume'
 # End of dirty stuff
+=======
+{normalizePath, getFileClass} = require '../helpers/file'
+>>>>>>> 0759785e6a73787ae4d6166d455c268bcac75f20
 
+baseController = new cozydb.SimpleController
+    model: File
+    reqProp: 'file'
+    reqParamID: 'fileid'
 
 ## Helpers ##
 
@@ -74,16 +84,58 @@ module.exports.fetch = (req, res, next, id) ->
 ## Actions ##
 
 
-module.exports.find = (req, res) ->
-    res.send req.file
+module.exports.find = baseController.send
+module.exports.all = baseController.listAll
+
+# Perform download as an inline attachment.
+sendBinary = baseController.sendBinary
+    filename: 'file'
+
+module.exports.getAttachment = (req, res, next) ->
+
+    # Prevent server from stopping if the download is very slow.
+    isDownloading = true
+    do keepAlive = ->
+        if isDownloading
+            feed.publish 'usage.application', 'files'
+            setTimeout keepAlive, 60 * 1000
+
+    # Configure headers so clients know they should read and not download.
+    encodedFileName = encodeURIComponent req.file.name
+    res.setHeader 'Content-Disposition', """
+        inline; filename*=UTF8''#{encodedFileName}
+    """
+
+    # Tell when the download is over in order to stop the keepAlive mechanism.
+    res.on 'close', -> isDownloading = false
+    res.on 'finish', -> isDownloading = false
+
+    sendBinary req, res, next
 
 
-module.exports.all = (req, res, next) ->
-    File.all (err, files) ->
-        if err
-            next err
-        else
-            res.send files
+# Perform download as a traditional attachment.
+module.exports.downloadAttachment = (req, res, next) ->
+
+    # Prevent server from stopping if the download is very slow.
+    isDownloading = true
+    do keepAlive = ->
+        if isDownloading
+            feed.publish 'usage.application', 'files'
+            setTimeout keepAlive, 60 * 1000
+
+
+    # Configure headers so clients know they should download, and that they
+    # can make up the file name.
+    encodedFileName = encodeURIComponent req.file.name
+    res.setHeader 'Content-Disposition', """
+        attachment; filename*=UTF8''#{encodedFileName}
+    """
+
+    # Tell when the download is over in order to stop the keepAlive mechanism.
+    res.on 'close', -> isDownloading = false
+    res.on 'finish', -> isDownloading = false
+
+    sendBinary req, res, next
 
 
 # Prior to file creation it ensures that all parameters are correct and that no
@@ -93,6 +145,52 @@ module.exports.all = (req, res, next) ->
 # parent folder is tagged.
 folderParent = {}
 timeout = null
+
+# Helpers functions of upload process
+
+# check if an error is storage related
+isStorageError = (err) ->
+    return err.toString().indexOf('enough storage') isnt -1
+
+# After 1 minute of inactivity, update parents
+resetTimeout = ->
+    clearTimeout(timeout) if timeout?
+    timeout = setTimeout updateParents, 60 * 1000
+
+
+# Save in RAM lastModification date for parents
+# Update folder parent once all files are uploaded
+updateParents = ->
+    errors = {}
+    for name in Object.keys(folderParent)
+        folder = folderParent[name]
+        folder.save (err) ->
+            errors[folder.name] = err if err?
+    folderParent = {}
+
+
+confirmCanUpload = (data, req, next) ->
+
+    # owner can upload.
+    return next null unless req.public
+    element = new File data
+    sharing.checkClearance element, req, 'w', (authorized, rule) ->
+        if authorized
+            if rule?
+                req.guestEmail = rule.email
+                req.guestId = rule.contactid
+            next()
+        else
+            err = new Error 'You cannot access this resource'
+            err.status = 404
+            err.template =
+                name: '404'
+                params:
+                    localization: require '../lib/localization_manager'
+                    isPublic: true
+            next err
+
+
 module.exports.create = (req, res, next) ->
     clearTimeout(timeout) if timeout?
 
@@ -104,160 +202,194 @@ module.exports.create = (req, res, next) ->
     form.on 'part', (part) ->
         # Get field, form is processed one way, be sure that fields are sent
         # before the file.
-        # Parts are porcessed sequentially, so the data event shoudl be
+        # Parts are processed sequentially, so the data event should be
         # processed before reaching the file part.
         unless part.filename?
             fields[part.name] = ''
             part.on 'data', (buffer) ->
                 fields[part.name] = buffer.toString()
+            return
 
         # We assume that only one file is sent.
-        else
+        # we do not write a subfunction because it seems to load the whole
+        # stream in memory.
+        name = fields.name
+        path = fields.path
+        lastModification = moment(fields.lastModification).toISOString()
+        overwrite = fields.overwrite
+        upload = true
+        canceled = false
+        uploadStream = null
 
-            # we do not write a subfunction because it seems to load the whole
-            # stream in memory.
-            name = fields.name
-            path = fields.path
+        # we have no name for this file, give up
+        if not name or name is ""
+            err = new Error "Invalid arguments: no name given"
+            err.status = 400
+            return next err
 
-            if not name or name is ""
-                err = new Error "Invalid arguments: no name given"
-                err.status = 400
-                next err
-            else
-                # Check that the file doesn't exist yet.
-                path = normalizePath path
-                fullPath = "#{path}/#{name}"
-                File.byFullPath key: fullPath, (err, sameFiles) =>
-                    return next err if err
-                    if sameFiles.length > 0
-                        res.send
-                            error: true
-                            code: 'EEXISTS'
-                            msg: "This file already exists"
-                        , 400
-                    else
-                        now = moment().toISOString()
-                        fileClass = getFileClass part
+        # while this upload is processing
+        # we send usage.application to prevent auto-stop
+        # and we defer parents lastModification update
+        keepAlive = ->
+            if upload
+                feed.publish 'usage.application', 'files'
+                setTimeout keepAlive, 60*1000
+                resetTimeout()
 
-                        # Generate file metadata.
-                        data =
-                            name: name
-                            path: normalizePath path
-                            creationDate: now
-                            lastModification: now
-                            mime: mime.lookup name
-                            size: part.byteCount
-                            tags: []
-                            class: fileClass
+        # if anything happens after the file is created
+        # we need to destroy it
+        rollback = (file, err) ->
+            canceled = true
+            file.destroy (delerr) ->
+                # nothing more we can do with delerr
+                log.error delerr if delerr
+                if isStorageError err
+                    res.send
+                        error: true
+                        code: 'ESTORAGE'
+                        msg: "modal error size"
+                    , 400
+                else
+                    next err
 
-                        upload = true
+        attachBinary = (file) ->
+            # request-json requires a path field to be set
+            # before uploading
+            part.path = file.name
+            checksum = crypto.createHash 'sha1'
+            checksum.setEncoding 'hex'
+            part.pause()
+            part.pipe checksum
+            metadata = name: "file"
+            uploadStream = file.attachBinary part, metadata, (err) ->
+                upload = false
+                # rollback if there was an error
+                return rollback file, err if err #and not canceled
 
-                        # Create a file object and link to it a binary object.
-                        # Then it uploads the stream as an attachment of the
-                        # binary.
-                        createFile = =>
+                # TODO move everythin below in the model.
+                checksum.end()
+                checksum = checksum.read()
 
-                            # This action is required to ensure that the
-                            # application is not stopped by the "autostop"
-                            # feature of the controller. It could occurs if the
-                            # file is too long to upload. The controller could
-                            # think that the application is
-                            # unactive.
-                            keepAlive = ->
-                                if upload
-                                    feed.publish 'usage.application', 'files'
-                                    setTimeout ->
-                                        keepAlive()
-                                    , 60*1000
+                # set the file checksum
 
-                                    # Defers parent's lastModification date
-                                    # update
-                                    resetTimeout()
+                unless canceled
 
-                            # Here file is a stream. For some weird reason,
-                            # request-json requires that a path field to be set
-                            # before uploading.
-                            attachBinary = (newFile) ->
+                    data =
+                        checksum: checksum
+                        uploading: false
 
-                                isStorageError = (err) ->
-                                    stringErr = err.toString()
-                                    return stringErr.indexOf('enough storage')
+                    file.updateAttributes data, (err) ->
+                        # we ignore checksum storing errors
+                        log.debug err if err
 
-                                part.path = data.name
-                                data = {"name": "file"}
-                                newFile.attachBinary part, data, (err) ->
-                                    upload = false
-                                    if err
-                                        newFile.destroy (error) ->
-                                            if isStorageError(error) isnt -1
-                                                res.send
-                                                    error: true
-                                                    code: 'ESTORAGE'
-                                                    msg: "modal error size"
-                                                , 400
-                                            else
-                                                next err
-                                    else
-                                        index newFile
+                        # index the file in cozy-indexer for fast search
+                        file.index ["name"], (err) ->
+                            # we ignore indexing errors
+                            log.debug err if err
 
-                            # Index file name to Cozy indexer to allow quick
-                            # search on it.
-                            index = (newFile) ->
-                                newFile.index ["name"], (err) ->
+                            # send email or notification of file changed
+                            who = req.guestEmail or 'owner'
+                            sharing.notifyChanges who, file, (err) ->
+
+                                # we ignore notification errors
+                                log.debug err if err
+
+                                # Retrieve binary metadat
+                                File.find file.id, (err, file) ->
                                     log.debug err if err
-                                    who = req.guestEmail or 'owner'
-                                    sharing.notifyChanges who, newFile, (err) ->
-                                        log.debug err if err
-                                        res.send newFile, 200
+                                    res.send file, 200
 
-                            # Create file document then attach file stream as
-                            # binary to that file document.
-                            File.create data, (err, newFile) =>
-                                if err
-                                    next err
-                                else
-                                    attachBinary newFile
-                                    keepAlive()
+        now = moment().toISOString()
 
-                        # find parent folder for updating its last modification
-                        # date and applying tags to uploaded file.
-                        Folder.byFullPath key: data.path, (err, parents) =>
-                            return next err if err
-                            if parents.length > 0
-                                # inherit parent folder tags and update its
-                                # last modification date
-                                parent = parents[0]
-                                data.tags = parent.tags
-                                parent.lastModification = now
-                                folderParent[parent.name] = parent
-                                createFile()
-                            else
-                                createFile()
+        # Check that the file doesn't exist yet.
+        path = normalizePath path
+        fullPath = "#{path}/#{name}"
+        File.byFullPath key: fullPath, (err, sameFiles) =>
+            return next err if err
+
+            # there is already a file with the same name, give up
+            if sameFiles.length > 0
+                if overwrite
+                    file = sameFiles[0]
+                    attributes =
+                        lastModification: lastModification
+                        size: part.byteCount
+                        mime: mime.lookup name
+                        class: getFileClass part
+                        uploading: true
+                    return file.updateAttributes attributes, ->
+                        # Ask for the data system to not run autostop
+                        # while the upload is running.
+                        keepAlive()
+
+                        # Attach file in database.
+                        attachBinary file
+                else
+                    upload = false
+                    return res.send
+                        error: true
+                        code: 'EEXISTS'
+                        msg: "This file already exists"
+                    , 400
+
+            # Generate file metadata.
+            data =
+                name: name
+                path: normalizePath path
+                creationDate: now
+                lastModification: lastModification
+                mime: mime.lookup name
+                size: part.byteCount
+                tags: []
+                class: getFileClass part
+                uploading: true
+
+            # check if the request is allowed
+            confirmCanUpload data, req, (err) ->
+                return next err if err
+
+                # find parent folder for updating its last modification
+                # date and applying tags to uploaded file.
+                Folder.byFullPath key: data.path, (err, parents) =>
+                    return next err if err
+
+                    # inherit parent folder tags and update its
+                    # last modification date
+                    if parents.length > 0
+                        parent = parents[0]
+                        data.tags = parent.tags
+                        parent.lastModification = now
+                        folderParent[parent.name] = parent
+
+                    # Save file metadata
+                    File.create data, (err, newFile) =>
+                        return next err if err
+
+                        # Ask for the data system to not run autostop
+                        # while the upload is running.
+                        keepAlive()
+
+                        # If user stops the upload, the file is deleted.
+                        err = new Error 'Request canceled by user'
+                        res.on 'close', ->
+                            log.info 'Upload request closed by user'
+                            uploadStream.abort()
+
+                        # Attach file in database.
+                        attachBinary newFile
 
     form.on 'error', (err) ->
         log.error err
 
+<<<<<<< HEAD
+=======
     form.parse req
 
+module.exports.publicCreate = (req, res, next) ->
+    req.public = true
+    module.exports.create req, res, next
 
-# After 1 minute of inactivity, update parents
-resetTimeout = () =>
-    clearTimeout(timeout) if timeout?
-    timeout = setTimeout () =>
-        updateParents()
-    , 60 * 1000
-
-
-# Save in RAM lastModification date for parents
-# Update folder parent once all files are uploaded
-updateParents = () ->
-    errors = {}
-    for name in Object.keys(folderParent)
-        folder = folderParent[name]
-        folder.save (err) ->
-            errors[folder.name] = err if err?
-    folderParent = {}
-
+>>>>>>> 0759785e6a73787ae4d6166d455c268bcac75f20
 # There is two ways to modify a file:
 
 # * change its tags: simple modification
@@ -315,7 +447,6 @@ module.exports.modify = (req, res, next) ->
                     name: newName
                     path: normalizePath newPath
                     public: isPublic
-                    lastModification: moment().toISOString()
 
                 data.clearance = body.clearance if body.clearance
 
@@ -339,16 +470,6 @@ module.exports.destroy = (req, res, next) ->
             file.updateParentModifDate (err) ->
                 log.raw err if err
                 res.send success: 'File successfully deleted'
-
-
-# Perform download as an inline attachment.
-module.exports.getAttachment = (req, res, next) ->
-    processAttachment req, res, next, false
-
-
-# Perform download as a traditional attachment.
-module.exports.downloadAttachment = (req, res, next) ->
-    processAttachment req, res, next, true
 
 
 # Check if the research should be performed on tag or not.

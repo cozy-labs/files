@@ -1,8 +1,10 @@
 jade = require 'jade'
 fs = require 'fs'
-
+cozydb = require 'cozydb'
 Polyglot = require 'node-polyglot'
-Instance = require '../models/cozy_instance'
+
+getTemplateExt = require '../helpers/get_template_ext'
+ext = getTemplateExt()
 
 class LocalizationManager
 
@@ -18,7 +20,7 @@ class LocalizationManager
             callback null, @polyglot
 
     retrieveLocale: (callback) ->
-        Instance.getLocale (err, locale) ->
+        cozydb.api.getCozyLocale (err, locale) ->
             if err? or not locale then locale = 'en' # default value
             callback err, locale
 
@@ -38,7 +40,11 @@ class LocalizationManager
     getEmailTemplate: (name) ->
         filePath = "../views/#{@polyglot.currentLocale}/#{name}"
         templatefile = require('path').join __dirname, filePath
-        return jade.compile fs.readFileSync templatefile, 'utf8'
+        if ext is 'jade'
+            return jade.compile fs.readFileSync templatefile, 'utf8'
+        else
+            templatefile = templatefile.replace('jade', 'js')
+            return require(templatefile)
 
     # for template localization
     getPolyglot: -> return @polyglot

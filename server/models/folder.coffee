@@ -1,8 +1,12 @@
+<<<<<<< HEAD
 americano = require 'americano-cozy-pouchdb'
+=======
+cozydb = require 'cozydb'
+>>>>>>> 0759785e6a73787ae4d6166d455c268bcac75f20
 moment = require 'moment'
-CozyInstance = require './cozy_instance'
+async = require 'async'
 
-module.exports = Folder = americano.getModel 'Folder',
+module.exports = Folder = cozydb.getModel 'Folder',
     path: String
     name: String
     docType: String
@@ -11,8 +15,8 @@ module.exports = Folder = americano.getModel 'Folder',
     size: Number
     modificationHistory: Object
     changeNotification: Boolean
-    clearance: (x) -> x
-    tags: (x) -> x
+    clearance: cozydb.NoSchema
+    tags: [String]
 
 Folder.all = (params, callback) ->
     Folder.request "all", params, callback
@@ -22,6 +26,16 @@ Folder.byFolder = (params, callback) ->
 
 Folder.byFullPath = (params, callback) ->
     Folder.request "byFullPath", params, callback
+
+
+Folder.injectInheritedClearance = (folders, callback) ->
+    async.map folders, (folder, cb) ->
+        regularFolder = folder.toObject()
+        folder.getInheritedClearance (err, inheritedClearance) ->
+            regularFolder.inheritedClearance = inheritedClearance
+            cb err, regularFolder
+    , callback
+
 
 # New folder Creation process:
 # * Create new folder.
@@ -47,19 +61,43 @@ Folder::getFullPath = ->
 Folder::getParents = (callback) ->
     foldersOfPath = @getFullPath().split '/'
     parentFoldersPath = []
+
     # extract all parent's full path
     while foldersOfPath.length > 0
         parent = foldersOfPath.join '/'
-        parentFoldersPath.push parent if parent isnt ""
+
+        # Root and current folder aren't in the parents
+        parentFoldersPath.push parent if parent not in ['', @getFullPath()]
         foldersOfPath.pop()
 
     Folder.byFullPath keys: parentFoldersPath.reverse(), callback
 
 Folder::getPublicURL = (cb) ->
-    CozyInstance.getURL (err, domain) =>
+    cozydb.api.getCozyDomain (err, domain) =>
         return cb err if err
         url = "#{domain}public/files/folders/#{@id}"
         cb null, url
+
+Folder::getInheritedClearance = (callback) ->
+
+    @getParents (err, parents) ->
+        return callback err if err?
+
+        # if we check a folder, we must exclude the folder itself from
+        #the parent's tree otherwise we can't change its clearance afterwards
+        parents.shift() if parents.length > 0 and parents[0].id is @id
+
+        # keep only element of path that alter the clearance
+        isPublic = false
+        inherited = parents?.filter (parent) ->
+            parent.clearance = [] unless parent.clearance?
+
+            if isPublic then return false
+
+            isPublic = true if parent.clearance is 'public'
+            return parent.clearance.length isnt 0
+
+        callback null, inherited
 
 Folder::updateParentModifDate = (callback) ->
     Folder.byFullPath key: @path, (err, parents) =>

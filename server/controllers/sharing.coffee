@@ -12,13 +12,16 @@ mailTemplate = notiftemplate = localization.getEmailTemplate 'sharemail.jade'
 
 clearanceCtl = clearance.controller
     mailTemplate: (options, callback) ->
-        options.type = options.doc.docType.toLowerCase()
-        User.getDisplayName (err, displayName) ->
-            options.displayName = displayName or \
-                                  localization.t 'default user name'
-
+        # Use async to retrieve all wanted informations
+        User.getUserInfo (err, user) ->
+            options.type         = options.doc.docType.toLowerCase()
+            options.displayName  = user.name \
+                                   or localization.t 'default user name'
+            options.displayEmail = user.email
             options.localization = localization
+
             callback null, mailTemplate options
+
 
     mailSubject: (options, callback) ->
         type = options.doc.docType.toLowerCase()
@@ -28,6 +31,7 @@ clearanceCtl = clearance.controller
             callback null, localization.t 'email sharing subject',
                                 displayName: displayName
                                 name: name
+
 
 # fetch file or folder, put it in req.doc
 module.exports.fetch = (req, res, next, id) ->
@@ -47,25 +51,10 @@ module.exports.fetch = (req, res, next, id) ->
 
 # retrieve inherited sharing info
 module.exports.details = (req, res, next) ->
-    element = req.doc
-    element.getParents (err, parents) ->
-        return next err if err?
-
-        # if we check a folder, we must excluse the folder itself from the parent's tree
-        # otherwise we can't change its clearance afterwards
-        parents.shift() if parents.length > 0 and parents[0].id is element.id
-
-        # keep only element of path that alter the clearance
-        isPublic = false
-        inherited = parents?.filter (parent) ->
-            parent.clearance = [] unless parent.clearance?
-
-            if isPublic then return false
-
-            isPublic = true if parent.clearance is 'public'
-            return parent.clearance.length isnt 0
-
-        res.send inherited: inherited
+    req.doc.getInheritedClearance (err, inherited) ->
+        if err? then next err
+        else
+            res.send inherited: inherited
 
 # do not use clearanceCtl, because we handle notifications
 module.exports.change = (req, res, next) ->
@@ -83,3 +72,6 @@ module.exports.sendAll = clearanceCtl.sendAll
 module.exports.contactList = clearanceCtl.contactList
 
 module.exports.contactPicture = clearanceCtl.contactPicture
+
+module.exports.contact = clearanceCtl.contact
+

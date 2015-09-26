@@ -2,8 +2,6 @@ BaseView = require '../lib/base_view'
 File = require '../models/file'
 ProgressBar = require '../widgets/progressbar'
 
-UploadedFileView = require './uploaded_file_view'
-
 module.exports = class UploadStatusView extends BaseView
 
     id: "upload-status"
@@ -12,18 +10,22 @@ module.exports = class UploadStatusView extends BaseView
     events: ->
         'click #dismiss': 'resetCollection'
 
-    initialize: ->
-        super
+    initialize: (options) ->
+        super options
+        @uploadQueue = options.uploadQueue
+
         @listenTo @collection, 'add', @uploadCount
         @listenTo @collection, 'remove', @uploadCount
-        @listenTo @collection, 'reset', @render
-        @listenTo @collection, 'upload-progress', @progress
-        @listenTo @collection, 'upload-complete', @complete
+        @listenTo @uploadQueue, 'reset', @render
+        @listenTo @uploadQueue, 'upload-progress', @progress
+        @listenTo @uploadQueue, 'upload-complete', @complete
 
     getRenderData: ->
-        e = @collection.progress
-        value = if e then parseInt(100 * e.loadedBytes / e.totalBytes) + '%'
-        else '0 %'
+        if @collection.progress
+            {loadedBytes, totalBytes} = @collection.progress
+            value = parseInt(100 * loadedBytes / totalBytes) + '%'
+        else
+            value = '0 %'
 
         return data =
             value: value
@@ -31,25 +33,30 @@ module.exports = class UploadStatusView extends BaseView
 
     progress: (e) ->
         @$el.removeClass 'success danger warning'
-        percentage = parseInt(100 * e.loadedBytes / e.totalBytes) + '%'
+        progress = parseInt(100 * e.loadedBytes / e.totalBytes)
+        percentage =  "#{progress}%"
         @progressbar.width percentage
         @progressbarContent.text "#{t('total progress')} : #{percentage}"
 
     complete: ->
         @$('.progress').remove()
-        @dismiss.show()
+        result = @uploadQueue.getResults()
+        if result.success > 0 or result.errorList.length > 0 \
+        or result.existingList.length > 0
+            @dismiss.show()
 
-        result = @collection.getResults()
-        @$el.addClass result.status
-        @$('span').text [
-            if result.success
-                t 'upload complete', smart_count: result.success
-            if result.existing.length
-                @makeExistingSentence result.existing
+            @$el.addClass result.status
+            @$('span').text [
+                if result.success
+                    t 'upload complete', smart_count: result.success
+                if result.existingList.length
+                    @makeExistingSentence result.existingList
 
-            if result.error.length
-                @makeErrorSentence result.error
-        ].join ' '
+                if result.errorList.length
+                    @makeErrorSentence result.errorList
+            ].join ' '
+        else
+            @resetCollection()
 
     # generate a sentence explaining existing files
     makeExistingSentence: (existing) ->
@@ -62,42 +69,44 @@ module.exports = class UploadStatusView extends BaseView
 
     # generate a sentence explaining error files
     makeErrorSentence: (errors) ->
-        console.log errors
-        parts = [] #[errors[0].get('name')]
+        parts = []
+        parts.push "#{errors.pop().get 'name'}"
         if errors.length > 1
-            parts.push t('and x files', smart_count: errors.length - 1)
-            parts.push t 'failed to upload'
+            parts.push t 'and x files', smart_count: errors.length - 1
+        parts.push t 'failed to upload', smart_count: errors.length - 1
+        if errors.length > 1
             parts.push ': '
             parts.push "#{errors.pop().get 'name'}"
             parts.push ", #{error.get 'name'}" for error in errors
 
         return parts.join ' '
 
-    resetCollection: ->
-        @collection.reset()
+
+    resetCollection: -> @uploadQueue.reset()
+
 
     uploadCount: (e) ->
-        if @collection.length
-            @$el.slideDown easing: 'linear'
-            $('#content').animate 'margin-top': 108,
-                easing: 'linear'
+        if @collection.length > 0
+            @$el.show()
+            $('#content').addClass 'mt108'
+        else
+            @render()
 
         @render() if @completed and not @collection.completed
-        @counter.text @collection.length
-        @counterDone.text @collection.loaded
+
 
     afterRender: ->
-        unless @collection.length
-            @$el.hide()
-            $('#content').css 'margin-top': 56
-        else
-            $('#content').css 'margin-top': 108
-
         @$el.removeClass 'success danger warning'
-        @counter = @$ '.counter'
-        @counterDone = @$ '.counter-done'
+
         @progressbar = @$ '.progress-bar-info'
         @progressbarContent = @$ '.progress-bar-content'
         @dismiss = @$('#dismiss').hide()
-        if @collection.completed then @complete()
+
+        if @collection.length is 0
+            @$el.hide()
+            $('#content').removeClass 'mt108'
+        else
+            $('#content').addClass 'mt108'
+
+        if @uploadQueue.completed then @complete()
 

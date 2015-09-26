@@ -22,8 +22,10 @@ module.exports = class ModalShareView extends CozyClearanceModal
                 Modal.error 'server error occured', => @$el.modal 'hide'
             else
                 @inherited = data.inherited
-                last = _.last @inherited
-                @forcedPublic = last.name if last?.clearance is 'public'
+
+                @forcedShared = @inherited.length > 0
+
+                @makePublic() if @isPrivateClearance()
 
                 # actually render content
                 @refresh()
@@ -41,25 +43,59 @@ module.exports = class ModalShareView extends CozyClearanceModal
         email = item.toString().split(';')[0]
         super and email not in @summaryemails
 
-    # force 'public' display if forced public by inheritance
+    # force 'shared' display if forced shared by inheritance
     getRenderData: ->
         out = super
-        out.clearance = 'public' if @forcedPublic
+        if @forcedShared
+            if @inherited?
+                if @inherited[0].clearance is 'public'
+                    out.clearance = 'public'
+                else
+                    guests = []
+                    for folder in @inherited
+                        guests.push guest for guest in folder.clearance
+                    out.clearance = @getClearanceWithContacts guests
         return out
 
-    # ignore click on 'public' button when forced public by inheritance
-    makePublic: ->
-        return if @forcedPublic
+    # ignore click on 'private' button when forced public by inheritance
+    makePrivate: ->
+        return if @forcedShared
         super
 
     # support forced public by inheritance and add inherited summary
     afterRender: () ->
         super
 
-        if @forcedPublic
-            text = t('forced public') + @forcedPublic
+        if @forcedShared
             @$('#share-public').addClass 'toggled'
-            @$('#share-private').hide().after $('<p>').text text
+            @$('#select-mode-section').hide()
+
+            if @inherited[0].clearance is 'public'
+                text = t('forced public')
+                @$('#select-mode-section').after $('<p>').text text
+                $('#share-input').hide()
+                $('#add-contact').hide()
+                $('.input-group').prev('p').hide()
+                $('#public-url').removeClass 'disabled'
+                setTimeout ->
+                    $('#public-url').focus().select()
+                , 200
+            else
+                text = t('forced shared')
+                @$('#select-mode-section').after $('<p>').text text
+                $('#share-input').hide()
+                $('#add-contact').hide()
+                $('.input-group').prev('p').hide()
+                $('.input-group').prev('p').prev('p').hide()
+                $('#public-url').prev('p').hide()
+                $('#public-url').prev('p').prev('p').hide()
+                $('#public-url').hide()
+                $('.revoke').hide()
+                $('.changeperm').prop 'disabled', true
+
+            $('#modal-dialog-no').hide()
+            $('#modal-dialog-yes').html t('ok')
+
         else
             listitems = []
             summary = []
@@ -67,13 +103,13 @@ module.exports = class ModalShareView extends CozyClearanceModal
             for folder in @inherited when folder.clearance.length isnt 0
                 text = t('inherited from') + folder.name
                 listitems.push $('<li>').addClass('header').text text
-                for rule in folder.clearance
+                for rule in folder.clearance when folder.clearance
                     summary.push rule.email
                     listitems.push $('<li>').text rule.email
 
             if summary.length isnt 0
                 @summaryemails = summary
-                text = t('also have access') + ' : ' + summary.join(', ') + '. '
+                text = t('also have access') + ': ' + summary.join(', ') + '. '
                 summary = $('<div id="inherited-share-summary">').text text
                 summary.append $('<a>').text t('details')
                 list = $('<ul id="inherited-share-list">').hide()
@@ -95,3 +131,16 @@ module.exports = class ModalShareView extends CozyClearanceModal
     saveData: ->
         changeNotification = @$('#notifs').prop('checked') or false
         _.extend super, changeNotification: changeNotification
+
+    onYes: ->
+        if @forcedShared
+            @close()
+        else
+            super()
+
+    onNo: ->
+        if @forcedShared
+            @close()
+        else
+            super()
+

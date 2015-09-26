@@ -1,3 +1,4 @@
+path = require 'path'
 jade = require 'jade'
 async = require 'async'
 archiver = require 'archiver'
@@ -5,22 +6,17 @@ moment = require 'moment'
 log = require('printit')
     prefix: 'folders'
 
-downloader = require '../lib/downloader'
 sharing = require '../helpers/sharing'
 pathHelpers = require '../helpers/path'
 Folder = require '../models/folder'
 File = require '../models/file'
-CozyInstance = require '../models/cozy_instance'
-
-publicfoldertemplate = require('path').join __dirname, '../views/publicfolder.jade'
-template = require('path').join __dirname, '../views/index.jade'
+cozydb = require 'cozydb'
 
 KB = 1024
 MB = KB * KB
 
 
 ## Helpers ##
-
 
 module.exports.fetch = (req, res, next, id) ->
     Folder.request 'all', key: id, (err, folder) ->
@@ -139,8 +135,8 @@ updateParents = () ->
     folderParent = {}
 
 module.exports.find = (req, res, next) ->
-    res.send req.folder
-
+    Folder.injectInheritedClearance [req.folder], (err, folders) ->
+        res.send folders[0]
 
 module.exports.tree = (req, res, next) ->
     folderChild = req.folder
@@ -181,7 +177,7 @@ module.exports.modify = (req, res, next) ->
 
     updateIfIsSubFolder = (file, cb) ->
 
-        if file.path.indexOf(oldRealPath) is 0
+        if file.path?.indexOf(oldRealPath) is 0
             modifiedPath = file.path.replace oldRealPath, newRealPath
 
             # add new tags from parent, keeping the old ones
@@ -300,19 +296,41 @@ module.exports.allFolders = (req, res, next) ->
         else res.send folders
 
 module.exports.findContent = (req, res, next) ->
+
+    isPublic = req.url.indexOf('/public/') isnt -1
+
     getFolderPath req.body.id, (err, key, folder) ->
         if err? then next err
         else
             async.parallel [
-                (cb) -> Folder.byFolder key: key, cb
-                (cb) -> File.byFolder key: key, cb
+
+                # Retrieves the folders and inject the inherited clearance
+                (cb) -> Folder.byFolder key: key, (err, folders) ->
+                    # if it's a request from a guest, we limit the results
+                    if isPublic
+                        Folder.injectInheritedClearance folders, cb
+                    else
+                        cb null, folders
+
+                # Retrieves the files and inject the inherited clearance
+                (cb) -> File.byFolder key: key, (err, files) ->
+                    # if it's a request from a guest, we limit the results
+                    if isPublic
+                        File.injectInheritedClearance files, cb
+                    else
+                        cb null, files
                 (cb) ->
                     if req.body.id is "root"
                         cb null, []
                     else
-                        # if it's a request from a guest, we need to limit the result
-                        if req.url.indexOf('/public/') isnt -1
-                            sharing.limitedTree folder, req, (parents, authorized) -> cb null, parents
+                        # if it's a request from a guest, we limit the results
+                        if isPublic
+                            onResult = (parents, rule) ->
+                                # limitedTree adds the current folder as parent
+                                # so we need to remove it
+                                parents.pop()
+                                cb null, parents
+                            sharing.limitedTree folder, req, onResult
                         else
                             folder.getParents cb
             ], (err, results) ->
@@ -321,6 +339,7 @@ module.exports.findContent = (req, res, next) ->
                 else
                     [folders, files, parents] = results
                     content = folders.concat files
+
                     res.send 200, {content, parents}
 
 module.exports.findFolders = (req, res, next) ->
@@ -360,7 +379,12 @@ module.exports.searchContent = (req, res, next) ->
     # if the clearance is 'public', we don't allow the search (for privacy reasons)
     if isPublic and not key?.length > 0
         err = new Error 'You cannot access public search result'
-        err.status = 401
+        err.status = 404
+        err.template =
+            name: '404'
+            params:
+                localization: require '../lib/localization_manager'
+                isPublic: true
         next err
     else
         if query.indexOf('tag:') isnt -1
@@ -368,8 +392,13 @@ module.exports.searchContent = (req, res, next) ->
             parts = parts.filter (part) -> part.indexOf 'tag:' isnt -1
             tag = parts[0].split('tag:')[1]
             requests = [
-                (cb) -> Folder.request 'byTag', key: tag, cb
-                (cb) -> File.request 'byTag', key: tag, cb
+                # Retrieves the folders and inject the inherited clearance
+                (cb) -> Folder.request 'byTag', key: tag, (err, folders) ->
+                    Folder.injectInheritedClearance folders, cb
+
+                # Retrieves the files and inject the inherited clearance
+                (cb) -> File.request 'byTag', key: tag, (err, files) ->
+                    File.injectInheritedClearance files, cb
             ]
         else
             requests = [
@@ -403,24 +432,45 @@ module.exports.zip = (req, res, next) ->
     folder = req.folder
     archive = archiver 'zip'
 
-    key = "#{folder.path}/#{folder.name}"
+    if folder?
+        key = "#{folder.path}/#{folder.name}"
+        zipName = folder.name?.replace /\W/g, ''
 
-    # Download file with custom low level downloader and pipe the result in the
-    # archiver.
+    # if there is no folder, the target is root
+    else
+        key = ""
+        zipName = 'cozy-files'
+
+    # Request can limit the ZIP content to some elements only
+    if req.body?.selectedPaths?
+        selectedPaths = req.body.selectedPaths.split ';'
+    else
+        selectedPaths = []
+
+    # Download file and pipe the result in the archiver.
     addToArchive = (file, cb) ->
-        downloader.download "/data/#{file.id}/binaries/file", (stream) ->
-            if stream.statusCode is 200
-                name = file.path.replace(key, "") + "/" + file.name
-                archive.append stream, name: name
-                stream.on 'end', cb
-            else
+        laterStream = file.getBinary "file", (err) ->
+            if err
+                log.error """
+An error occured while adding a file to archive. File: #{file.name}
+"""
+                log.raw err
                 cb()
+
+        name = "#{file.path.replace(key, "")}/#{file.name}"
+        laterStream.on 'ready', (stream) ->
+            archive.append stream, name: name
+            cb()
 
     # Build zip from file list and pip the result in the response.
     makeZip = (zipName, files) ->
 
         # Start the streaming.
         archive.pipe res
+
+        # Arbort archiving process when request is closed.
+        req.on 'close', ->
+            archive.abort()
 
         # Set headers describing the final zip file.
         disposition = "attachment; filename=\"#{zipName}.zip\""
@@ -438,8 +488,20 @@ module.exports.zip = (req, res, next) ->
     File.byFullPath startkey: "#{key}/", endkey: "#{key}/\ufff0", (err, files) ->
         if err then next err
         else
+            # Only keeps files that have been selected
+            files = files.filter (file) ->
+                fullPath = "#{file.path}/#{file.name}"
+                path = "#{file.path}/"
+
+                fileMatch = selectedPaths.indexOf(fullPath) isnt -1
+                subFolderMatch = selectedPaths.indexOf(path) isnt -1
+
+                # Selects the file if it has been selected OR its parent has
+                # been selected (or parent of its parent...) OR if no file has
+                # been selected
+                return selectedPaths.length is 0 or fileMatch or subFolderMatch
+
             # Build zip file.
-            zipName = folder.name?.replace /\W/g, ''
             makeZip zipName, files
 
 
@@ -463,8 +525,7 @@ module.exports.publicList = (req, res, next) ->
     folder = req.folder
 
     # if the page is requested by the user
-    console.log req.accepts 'html, json'
-    if ~req.accepts('html, json').indexOf 'html'
+    if ~req.accepts(['html', 'json']).indexOf 'html'
         errortemplate = (err) ->
             err = new Error 'File not found'
             err.status = 404
@@ -479,11 +540,8 @@ module.exports.publicList = (req, res, next) ->
             authorized = path.length isnt 0
             return errortemplate() unless authorized
             key = "#{folder.path}/#{folder.name}"
-            async.parallel [
-                (cb) -> CozyInstance.getLocale cb
-            ], (err, results) ->
+            cozydb.api.getCozyLocale (err, lang) ->
                 return errortemplate err if err
-                [lang] = results
 
                 publicKey = req.query.key or ""
                 imports = """
@@ -496,8 +554,7 @@ module.exports.publicList = (req, res, next) ->
                 """
 
                 try
-                    html = jade.renderFile template, {imports}
-                    res.send html
+                    res.render 'index', {imports}
                 catch err
                     errortemplate err
     else

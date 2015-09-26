@@ -1,5 +1,7 @@
-{exec} = require 'child_process'
+{exec, spawn} = require 'child_process'
 fs     = require 'fs'
+path = require 'path'
+fixtures = require 'cozy-fixtures'
 logger = require('printit')
             date: false
             prefix: 'cake'
@@ -7,11 +9,12 @@ logger = require('printit')
 option '-f', '--file [FILE*]' , 'List of test files to run'
 option '-d', '--dir [DIR*]' , 'Directory of test files to run'
 option '-e' , '--env [ENV]', 'Run tests with NODE_ENV=ENV. Default is test'
-option '' , '--use-js', 'If enabled, tests will run with the built files'
+option '-j' , '--use-js', 'If enabled, tests will run with the built files'
+option '-s' , '--use-server', 'If enabled, starts a server'
 
 options =  # defaults, will be overwritten by command line options
-    file        : no
-    dir         : no
+    file: no
+    dir: no
 
 # Grab test files of a directory recursively
 walk = (dir, excludeElements = []) ->
@@ -30,7 +33,7 @@ walk = (dir, excludeElements = []) ->
     return fileList
 
 taskDetails = '(default: ./tests, use -f or -d to specify files and directory)'
-task 'tests', "Run tests #{taskDetails}", (opts) ->
+task 'tests:server', "Run tests #{taskDetails}", testsServer = (opts, callback) ->
     logger.options.prefix = 'cake:tests'
     files = []
     options = opts
@@ -58,7 +61,65 @@ task 'tests', "Run tests #{taskDetails}", (opts) ->
             process.exit 1
         else
             console.log "Tests succeeded!"
-            process.exit 0
+            if callback?
+                callback()
+            else
+                process.exit 0
+
+task 'tests:client', 'Run tests for the client', testsClient=(opts, callback) ->
+    logger.options.prefix = 'cake:tests:client'
+    logger.info "Running client's tests..."
+
+    if opts['use-server']? and opts['use-server']
+        initializeServer = require path.join __dirname, './build/server'
+    else
+        initializeServer = (callback) -> callback()
+
+    app = null
+    fixtures.load
+        dirPath: './test/fixtures',
+        callback: ->
+            initializeServer (app) ->
+                if opts.file then files = opts.file.join ' '
+                else files = 'client/tests/e2e'
+
+                cmd = spawn 'casperjs', ['test', files]
+
+                cmd.stdout.pipe process.stdout
+                cmd.stderr.pipe process.stderr
+
+                cmd.on 'exit', (code) ->
+                    app.server.close() if app?
+                    if code is 1
+                        console.log "A least one test failed."
+                        process.exit 1
+                    else
+                        console.log "Clients tests successfully runned!"
+                        if callback?
+                            callback()
+                        else
+                            process.exit 0
+
+task 'tests', 'Run tests for client and server', (opts) ->
+    testsServer opts, -> testsClient opts, -> process.exit 0
+
+
+buildJade = ->
+    jade = require 'jade'
+    srcPath = './build/server/views'
+    buildFolder = (folderPath) ->
+        for file in fs.readdirSync(folderPath)
+            elemPath = "#{folderPath}/#{file}"
+            unless fs.lstatSync(elemPath).isDirectory()
+                template = fs.readFileSync elemPath, 'utf8'
+                output = "var jade = require('jade/runtime');\n"
+                output += "module.exports = " + jade.compileClient template, filename: elemPath
+                name = file.replace '.jade', '.js'
+                fs.writeFileSync "#{folderPath}/#{name}", output
+            else
+                buildFolder elemPath
+    buildFolder srcPath
+
 
 task 'build', 'Build CoffeeScript to Javascript', ->
     logger.options.prefix = 'cake:build'
@@ -72,7 +133,10 @@ task 'build', 'Build CoffeeScript to Javascript', ->
               "cp ./server/views/404_build.jade client/app/assets/404.jade && " + \
               "cd client/ && brunch build --production && cd .. && " + \
               "rm client/app/assets/*.jade && " + \
+              "rm build/server/views/*.js && " + \
+              "rm build/server/views/*/*.js && " + \
               "mv build/client/public/*.jade build/server/views/ && " + \
+              "rm -rf build/server/views/*_build.jade && " + \
               "coffee -cb --output build/client/app/locales client/app/locales"
 
     exec command, (err, stdout, stderr) ->
@@ -80,5 +144,7 @@ task 'build', 'Build CoffeeScript to Javascript', ->
             logger.error "An error has occurred while compiling:\n" + err
             process.exit 1
         else
-            logger.info "Compilation succeeded."
-            process.exit 0
+            buildJade()
+            exec "rm -rf build/server/views/*.jade && rm -rf build/server/views/*/*.jade", ->
+                logger.info "Compilation succeeded."
+                process.exit 0

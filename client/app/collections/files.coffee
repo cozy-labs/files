@@ -89,7 +89,8 @@ module.exports = class FileCollection extends Backbone.Collection
                         callback null, folder, collection
 
     existingPaths: ->
-        @map (model) -> model.getRepository()
+        return @map (model) -> model.getRepository()
+
 
     # Creates a sub collection (projection) based on the current collection
     getSubCollection: (path) ->
@@ -98,6 +99,7 @@ module.exports = class FileCollection extends Backbone.Collection
         return new BackboneProjections.Filtered @,
                             filter: filter
                             comparator: @comparator
+
 
     comparator: (f1, f2) ->
 
@@ -150,3 +152,22 @@ module.exports = class FileCollection extends Backbone.Collection
             return 1
         else # t1 is 'folder' and t2 is 'file'
             return -1
+
+
+    # Returns an existing model if a file with a similar id or a similar
+    # location (path + name) is already in the queue.
+    isFileStored: (model) ->
+
+        # first check by id
+        existingFile = @get model.get('id')
+        unless existingFile?
+
+            # then check by full path
+            path = model.getRepository()
+            models = @filter (currentModel) ->
+                return currentModel.getRepository() is path
+
+            existingFile = models[0] if models.length > 0
+
+        return existingFile or null
+

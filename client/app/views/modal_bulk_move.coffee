@@ -97,22 +97,14 @@ module.exports = class ModalBulkMoveView extends Modal
 
                 @$el.find('.modal-body').append movedInfos
 
-    # When the modal is being closed, we unselect all selected files
-    onNo: ->
-        @clearSelection()
-        super()
-
-    clearSelection: ->
-        @collection.forEach (element) ->
-            element.isSelected = false
-            element.trigger 'toggle-select'
-
     # Process the update for all the selected elements
     bulkUpdate: (newPath, callback) ->
-
-        # Process the update 10 by 10
-        async.eachLimit @collection, 10, (model, cb) ->
+        window.pendingOperations.move++
+        # Process the update 1 by 1
+        async.eachSeries @collection, (model, cb) ->
             id = model.get 'id'
             type = model.get 'type'
             client.put "#{type}s/#{id}", path: newPath, cb
-        , callback
+        , ->
+            window.pendingOperations.move--
+            callback()

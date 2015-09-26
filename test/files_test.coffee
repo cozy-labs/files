@@ -22,8 +22,10 @@ describe "Files management", ->
             it "When I send a request to create a file", (done) ->
                 file =
                     name: "test"
+                    lastModification: "Tue Feb 03 2015 16:35:23 GMT+0100 (CET)"
                     path: ""
-                client.sendFile 'files/', './test/test.txt', file, (err, res, body) =>
+                TESTFILE = './test/fixtures/files/test.txt'
+                client.sendFile 'files/', TESTFILE, file, (err, res, body) =>
                     @res = res
                     @body = body
                     done()
@@ -39,18 +41,19 @@ describe "Files management", ->
                 body = JSON.parse @body
 
                 should.exist body.creationDate
-                should.exist body.lastModification
-                body.creationDate.should.be.equal body.lastModification
                 creationDate = moment(body.creationDate)
                 creationDate.date().should.be.equal now.date()
                 creationDate.month().should.be.equal now.month()
+                should.exist body.lastModification
+                body.lastModification.should.equal '2015-02-03T15:35:23.000Z'
+
 
         describe "Try to create the same file", ->
             it "When I send a request to create a file", (done) ->
                 file =
                     name: "test"
                     path: ""
-                path = './test/test.txt'
+                path = './test/fixtures/files/test.txt'
                 client.sendFile 'files/', path, file, (err, res, body) =>
                     @err = err
                     @res = res
@@ -60,6 +63,31 @@ describe "Files management", ->
             it "Then 400 should be returned as response code", ->
                 @res.statusCode.should.be.equal 400
 
+        describe "Try to create the same file with overwrite option", ->
+            it "When I send a request to create a file", (done) ->
+                file =
+                    name: "test"
+                    path: ""
+                    overwrite: "true"
+                path = './test/fixtures/files/test2.txt'
+                client.sendFile 'files/', path, file, (err, res, body) =>
+                    @err = err
+                    @res = res
+                    @body = JSON.parse body
+                    done()
+
+            it "Then 200 should be returned as response code", ->
+                @res.statusCode.should.be.equal 200
+
+            it "And its content should be overriden", (done) ->
+                client.get "files/#{@body.id}/attach/#{@body.name}", (err, res, body) ->
+                    should.not.exist err
+                    should.exist res
+                    should.exist body
+                    body.should.equal "Does overwrite work?\n"
+                    done()
+                , false
+
 
     describe "Get file", =>
 
@@ -67,7 +95,7 @@ describe "Files management", ->
             file =
                 name: "test2"
                 path: ""
-            client.sendFile 'files/', './test/test.txt', file, (err, res, body) =>
+            client.sendFile 'files/', './test/fixtures/files/test.txt', file, (err, res, body) =>
                 body = JSON.parse(body)
                 @body = body
                 @id = body.id
@@ -97,7 +125,7 @@ describe "Files management", ->
             file =
                 name: "test3"
                 path: ""
-            client.sendFile "files/", './test/test.txt', file, (err, res, body) =>
+            client.sendFile "files/", './test/fixtures/files/test.txt', file, (err, res, body) =>
                 body = JSON.parse(body)
                 @id = body.id
                 done()
@@ -142,7 +170,7 @@ describe "Files management", ->
             file =
                 name: "test4"
                 path: ""
-            client.sendFile "files/", './test/test.txt', file, (err, res, body) =>
+            client.sendFile "files/", './test/fixtures/files/test.txt', file, (err, res, body) =>
                 body = JSON.parse(body)
                 @id = body.id
                 done()
@@ -186,7 +214,7 @@ describe "Files management", ->
             file =
                 name: "test5"
                 path: ""
-            client.sendFile "files/", './test/test.txt', file, (err, res, body) =>
+            client.sendFile "files/", './test/fixtures/files/test.txt', file, (err, res, body) =>
                 body = JSON.parse(body)
                 @id = body.id
                 done()
@@ -227,7 +255,7 @@ describe "Files management", ->
             file =
                 name: "testtags"
                 path: ""
-            client.sendFile "files/", './test/test.txt', file, (err, res, body) =>
+            client.sendFile "files/", './test/fixtures/files/test.txt', file, (err, res, body) =>
                 body = JSON.parse(body)
                 @id = body.id
                 done()

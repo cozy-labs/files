@@ -43,8 +43,14 @@ module.exports =
         get: folders.find
         put: folders.modify
         delete: folders.destroy
+
+    # Skips the folder retrieval for root actions
+    'folders/root/zip/:name':
+        get: folders.zip
+        post: folders.zip
     'folders/:folderid/zip/:name':
         get: folders.zip
+        post: folders.zip
 
     'search/folders':
         post: folders.search
@@ -60,6 +66,8 @@ module.exports =
         get: sharing.contactList
     'clearance/contacts/:contactid.jpg':
         get: sharing.contactPicture
+    'clearance/contacts/:contactid':
+        get: sharing.contact
     'clearance/:shareid':
         get: sharing.details
         put: sharing.change
@@ -75,11 +83,12 @@ module.exports =
         put: [public_auth.checkClearance('r', 'folder'), folders.changeNotificationsState]
     'public/folders/:folderid/zip/:name':
         get: [public_auth.checkClearance('r', 'folder'), folders.zip]
+        post: [public_auth.checkClearance('r', 'folder'), folders.zip]
     'public/folders/:folderid':
         get: folders.publicList
 
     'public/files':
-        post: [public_auth.checkClearance('w', 'file'), files.create]
+        post: files.publicCreate # clearanche is checked in the upload process
     'public/files/:fileid/attach/:name':
         get: [public_auth.checkClearance('r', 'file'), files.getAttachment]
     'public/files/:fileid/download/:name':

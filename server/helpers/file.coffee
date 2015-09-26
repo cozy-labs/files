@@ -1,5 +1,3 @@
-downloader = require '../lib/downloader'
-
 module.exports =
 
     # Ensure that:
@@ -13,6 +11,7 @@ module.exports =
             path = "/#{path}"
         path
 
+<<<<<<< HEAD
     # Put right headers in response, then stream file to the response.
     processAttachment: (req, res, next, download) ->
         file = req.file
@@ -38,6 +37,10 @@ module.exports =
 
     # Returns a file calss depending of the mime type. It's useful to render icons
     # properly.
+=======
+    # Returns a file calss depending of the mime type. It's useful to render
+    # icons properly.
+>>>>>>> 0759785e6a73787ae4d6166d455c268bcac75f20
     getFileClass: (file) ->
         type = file.headers['content-type']
         switch type.split('/')[0]

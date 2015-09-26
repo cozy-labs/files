@@ -12,23 +12,26 @@
 
                 //- clearance modification buttons
                 if model.id != 'root'
-                  a.btn.btn-cozy#share-state.btn-cozy-contrast
-                    if model.clearance == 'public'
-                      | #{t('public')}
+                  span#folder-state
+                    if clearance == 'public'
                       span.fa.fa-globe
-                    else if model.clearance && model.clearance.length > 0
-                      | #{t('shared')}
-                      span.fa.fa-users
-                      span= model.clearance.length
-                    else
-                      | #{t('private')}
-                      span.fa.fa-lock
+                      span.text #{t('shared')}
+                    else if clearance && clearance.length > 0
+                      span.fa.fa-globe
+                      span.text #{t('shared')}
+                      //-span.fa.fa-users
+                      span &nbsp;(#{clearance.length})
+                    //-else
+                      //-span.text #{t('private')}
+                      //-span.fa.fa-lock
+                  a.btn.btn-cozy.btn-cozy-contrast(title="#{t('share')}")#share-state
+                    span.fa.fa-share-alt
                   | &nbsp;
 
                 //- file & folder uploaders
                 .btn-group#upload-btngroup
-                  a#button-upload-new-file.btn.btn-cozy.btn-cozy(title=t('upload button'))
-                    input#uploader(type="file", multiple)
+                  a#button-upload-new-file.btn.btn-cozy.btn-cozy
+                    input#uploader(type="file", multiple, title=t('upload button'))
                     img(src="images/add-file.png")
                   if supportsDirectoryUpload
                     a.btn.btn-cozy.dropdown-toggle(data-toggle="dropdown")
@@ -36,19 +39,25 @@
                     ul.dropdown-menu
                       li: a#button-upload-folder
                         input#folder-uploader(type="file", directory, mozdirectory, webkitdirectory)
-                        span Upload a folder
+                        span= t('upload folder msg')
                 | &nbsp;
                 a.btn.btn-cozy#button-new-folder(title=t('new folder button'))
                   img(src="images/add-folder.png")
 
                 //- bulk actions: move and remove
                 .btn-group#bulk-actions-btngroup
-                  a#button-bulk-move.btn.btn-cozy.btn-cozy
-                    | Move all&nbsp;
-                    span.glyphicon.glyphicon-arrow-right
-                  a#button-bulk-remove.btn.btn-cozy.btn-cozy
-                    | Remove all&nbsp;
-                    span.glyphicon.glyphicon-remove-circle
+                  if isPublic
+                      a#button-bulk-download(title="#{t('download all')}").btn.btn-cozy-contrast
+                        span.label #{t("download all")}&nbsp;
+                        span.fa.fa-download.icon-white
+                  else
+                      a#button-bulk-download(title="#{t('download all')}").btn.btn-cozy
+                        span.fa.fa-download
+                  a#button-bulk-move(title="#{t('move all')}").btn.btn-cozy.btn-cozy
+                    span.fa.fa-file
+                    span.fa.fa-arrow-right
+                  a#button-bulk-remove(title="#{t('remove all')}").btn.btn-cozy.btn-cozy
+                    span.fa.fa-trash-o
 
               //- notification toggle button
               if isPublic && hasPublicKey
@@ -70,7 +79,8 @@
 .container
   .row
     .col-lg-12#content
-      #loading-indicator &nbsp;
+      #loading-indicator
+        img(src="images/spinner.svg", width="20")
       #files
       #files-drop-zone
         .overlay

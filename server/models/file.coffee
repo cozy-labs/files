@@ -1,16 +1,19 @@
 fs = require 'fs'
+<<<<<<< HEAD
 americano = require 'americano-cozy-pouchdb'
+=======
+cozydb = require 'cozydb'
+>>>>>>> 0759785e6a73787ae4d6166d455c268bcac75f20
 moment = require 'moment'
+async = require 'async'
 feed = require '../lib/feed'
 log = require('printit')
     prefix: 'file-model'
 
 Folder = require './folder'
 Binary = require './binary'
-CozyInstance = require './cozy_instance'
 
-
-module.exports = File = americano.getModel 'File',
+module.exports = File = cozydb.getModel 'File',
     path: String
     name: String
     docType: String
@@ -20,9 +23,11 @@ module.exports = File = americano.getModel 'File',
     class: String
     size: Number
     binary: Object
+    checksum: String
     modificationHistory: Object
-    clearance: (x) -> x
-    tags: (x) -> x
+    clearance: cozydb.NoSchema
+    tags: [String]
+    uploading: Boolean
 
 File.all = (params, callback) ->
     File.request "all", params, callback
@@ -32,6 +37,15 @@ File.byFolder = (params, callback) ->
 
 File.byFullPath = (params, callback) ->
     File.request "byFullPath", params, callback
+
+# Careful, it turns files jugglingdb object into regular JS objects
+File.injectInheritedClearance = (files, callback) ->
+    async.map files, (file, cb) ->
+        regularFile = file.toObject()
+        file.getInheritedClearance (err, inheritedClearance) ->
+            regularFile.inheritedClearance = inheritedClearance
+            cb err, regularFile
+    , callback
 
 
 # Perform all operation required to create a new file:
@@ -84,7 +98,7 @@ File::getFullPath = ->
     @path + '/' + @name
 
 File::getPublicURL = (cb) ->
-    CozyInstance.getURL (err, domain) =>
+    cozydb.api.getCozyDomain (err, domain) =>
         return cb err if err
         url = "#{domain}public/files/files/#{@id}/attach/#{@name}"
         cb null, url
@@ -103,6 +117,23 @@ File::getParents = (callback) ->
             a.getFullPath().length - b.getFullPath().length
 
         callback null, parents
+
+File::getInheritedClearance = (callback) ->
+
+    @getParents (erer, parents) ->
+        return callback err if err?
+
+        # keep only element of path that alter the clearance
+        isPublic = false
+        inherited = parents?.filter (parent) ->
+            parent.clearance = [] unless parent.clearance?
+
+            if isPublic then return false
+
+            isPublic = true if parent.clearance is 'public'
+            return parent.clearance.length isnt 0
+
+        callback null, inherited
 
 File::updateParentModifDate = (callback) ->
     Folder.byFullPath key: @path, (err, parents) =>
